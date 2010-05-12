@@ -1,0 +1,16 @@
+# Backup files
+\#*\#
+*~
+*.bak
+*.orig
+
+*.pyc
+*.pyo
+
+*.o
+*.a
+*.so
+
+*.DS_Store
+
+build/
