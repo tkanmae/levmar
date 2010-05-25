@@ -19,15 +19,7 @@ def levmar_config():
 
 def get_lapack_opts():
     from numpy.distutils.system_info import get_info
-
-    if sys.platform == 'linux2':
-        opts = {
-            'libraries': ['lapack', 'f77blas', 'cblas', 'atlas'],
-            'library_dirs': ['/usr/lib/sse2'],
-        }
-        return opts
-    elif sys.platform == 'darwin':
-        return get_info('lapack_opt')
+    return get_info('lapack_opt')
 
 
 def configuration(parent_package='', top_path=None):
