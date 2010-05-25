@@ -6,41 +6,11 @@ cdef extern from "Python.h":
         Py_ssize_t ob_refcnt
         PyTypeObject *ob_type
 
-    ## from python_dict.pxd
-    int PyDict_Contains(object p, object key) except -1
-    PyObject* PyDict_GetItem(object p, object key)
-
-    ## from python_exc.pxd
-    void PyErr_SetString(object type, char *message)
-    PyObject* PyErr_NoMemory() except NULL
-
-    ## from python_float.pxd
-    double PyFloat_AsDouble(object pyfloat) except? -1
-
-    ## from python_long.pxd
-    long PyLong_AsLong(object pylong) except? -1
-
     ## from python_object.pxd
-    bint PyCallable_Check(object o)
     object PyObject_CallObject(object callable_object, object args)
 
-    ## from python_mem.pxd
-    void *PyMem_Malloc(size_t n)
-    void PyMem_Free(void *p)
-
     ## from python_sequence.pxd
-    bint PySequence_Check(object o)
-    Py_ssize_t PySequence_Size(object o) except -1
     object PySequence_Concat(object o1, object o2)
-
-    ## from python_tuple.pxd
-    bint PyTuple_Check(object o)
-
-    ## from python_ref.pxd
-    void Py_INCREF(object o)
-    void Py_DECREF(object o)
-    void Py_XINCREF(PyObject *o)
-    void Py_XDECREF(PyObject *o)
 
 
 cdef extern from "stdlib.h":
@@ -196,9 +166,3 @@ cdef extern from "levmar.h":
     double dlevmar_R2(
         void (*func)(double *p, double *hx, int m, int n, void *adata),
         double *p, double *x, int m, int n, void *adata)
-
-
-ctypedef struct CallbackData:
-    PyObject *fcn
-    PyObject *jacf
-    PyObject *extra_args
