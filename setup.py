@@ -1,5 +1,11 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
+"""
+TODO:
+    * Isolate the extension build from `levmar` library build in order
+      to reduce compile time.
+    * Run `nosetest` as an Git pre-commit hook.
+"""
 import sys
 import os
 
