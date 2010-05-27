@@ -310,6 +310,7 @@ cdef object py_info(double *c_info):
                c_info[4])       # mu / max[J^T.J]_ii
     info[2] = <int>c_info[5]    # number of iterations
 
+    ## Issue warning for unsuccessful termination.
     reason = <int>c_info[6]     # reason for terminating
     msg = _LM_STOP_REASONS[reason]
     if reason in _LM_STOP_REASONS_WARNED:
@@ -317,7 +318,7 @@ cdef object py_info(double *c_info):
     info[3] = msg
     info[4] = <int>c_info[7]    # number of `func` evaluations
     info[5] = <int>c_info[8]    # number of `jacf` evaluations
-    info[6] = <int>c_info[9]    # number of linear system solved.
+    info[6] = <int>c_info[9]    # number of linear system solved
 
     return tuple(info)
 
