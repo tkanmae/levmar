@@ -253,7 +253,7 @@ class Output(object):
 
 cdef object verify_bounds(object bounds, int m):
     if not isinstance(bounds, (list,tuple)):
-            raise TypeError("`bound` must be a tuple/list")
+        raise TypeError("`bound` must be a tuple/list")
     else:
         if len(bounds) != m:
             raise ValueError("`bounds` must be the same size as `p0`")
