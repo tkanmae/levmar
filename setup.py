@@ -15,7 +15,7 @@ lib_dir = os.path.join(src_dir, 'levmar-2.5')
 
 def extention_src():
     """Return a list containing the paths to the extension source files"""
-    src = ['levmar.c']
+    src = ['_levmar.c']
     src = [os.path.join(src_dir, f) for f in src]
     include_dirs = [src_dir, lib_dir]
     return src, include_dirs
@@ -42,7 +42,7 @@ def configuration(parent_package='', top_path=None):
     # -- Add `levmar` extension module.
     src, inc_dirs = extention_src()
     lapack_opts = get_info('lapack_opt')
-    config.add_extension('levmar',
+    config.add_extension('_levmar',
                          sources=src,
                          include_dirs=inc_dirs,
                          libraries=['levmar'],
