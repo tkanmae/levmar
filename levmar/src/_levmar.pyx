@@ -183,9 +183,9 @@ class Output(object):
     def __str__(self):
         buf = StringIO()
 
-        buf.write("Iteration: {0}\n".format(self.iter))
+        buf.write("Iteration: {0}\n".format(self.niter))
         buf.write("Reason: {0}\n\n".format(self.reason))
-        buf.write("Degrees of freedom: {0}\n\n".format(self.ndf()))
+        buf.write("Degrees of freedom: {0}\n\n".format(self.ndf))
         buf.write("Parameters:\n")
         for i, (p, p_stdv) in enumerate(zip(self._p, self._p_stdv)):
             buf.write("p[{0}] = {1:<+12.6g} +/- {2:<12.6g} "
