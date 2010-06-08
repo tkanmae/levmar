@@ -281,17 +281,26 @@ cdef object verify_bc(object bounds, int m):
 
 
 cdef object verify_lc(object A, object b, int m):
-    A = np.asarray(A, dtype=np.float64, order='C')
-    if A.size % m != 0:
+    if m < 2:
+        raise ValueError("Linear equation/inequility constraints can not be defined.")
+
+    A = np.array(A, dtype=np.float64, copy=False, order='C', ndmin=2)
+    if A.shape[1] != m:
         raise ValueError("The shape of the constraint matrix "
-                         "must be consistent with kx{0}".format(m))
-    else:
-        ## the number of equations/inequalities
-        k = A.size // m
-    b = np.asarray(b, dtype=np.float64, order='C')
+                         "must be (kx{0})".format(m))
+    if not np.alltrue(np.isfinite(A)):
+        raise ValueError("The constraint matrix should not contain "
+                         "non-finite values.")
+    ## the number of equations/inequalities
+    k = A.size // m
+
+    b = np.array(b, dtype=np.float64, copy=False, order='C', ndmin=1)
     if b.size != k:
-        raise ValueError("The shape of the constraint vector "
-                         "must be consistent with {0}x1".format(k))
+        raise ValueError("The shape of the RH constraint vector "
+                         "must be consistent with ({0}x1)".format(k))
+    if not np.alltrue(np.isfinite(b)):
+        raise ValueError("The RH constraint vector should not contain "
+                         "non-finite values.")
     return A, b, k
 
 
