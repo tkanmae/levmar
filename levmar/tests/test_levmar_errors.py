@@ -8,67 +8,75 @@ import levmar
 from levmar import LMUserFuncError
 
 
-class TestErrors(TestCase):
+class TestFuncErrors(TestCase):
+
+    def setUp(self):
+        self.x = np.arange(10, dtype=np.float64)
+        self.y = np.arange(10, dtype=np.float64)
+        self.func = lambda p, x: p[0]*x + p[1]
+        self.p0 = (1, 1)
 
     def test_func_not_callable(self):
-        x = np.arange(10, dtype=np.float64)
-        p0 = (1, 1)
-        args = ()
-
         invalid_funcs = (1, 'foo', [1, 2], (1, 2), {'foo': 1})
         for func in invalid_funcs:
-            assert_raises(TypeError, levmar.levmar, func, p0, x, args)
+            assert_raises(TypeError,
+                          levmar.levmar, func, self.p0, self.y,
+                          args=(self.x,))
 
     def test_jacf_not_callable(self):
-        x = np.arange(10, dtype=np.float64)
-        func = lambda p: p[0]*x + p[1]
-        p0 = (1, 1)
-        args = ()
-
         invalid_jacfs = (1, 'foo', [1, 2], (1, 2), {'foo': 1})
         for jacf in invalid_jacfs:
-            kw = {'jacf': jacf}
-            assert_raises(TypeError, levmar.levmar, func, p0, x, args, **kw)
+            assert_raises(TypeError,
+                          levmar.levmar, self.func, self.p0, self.y,
+                          args=(self.x,), jacf=jacf)
 
-    def test_func_type_error(self):
-        x = np.arange(10, dtype=np.float64)
+    def test_func_invalid_call(self):
+        assert_raises(LMUserFuncError,
+                      levmar.levmar, self.func, self.p0, self.y, args=())
+        foo = ()
+        assert_raises(LMUserFuncError,
+                      levmar.levmar, self.func, self.p0, self.y,
+                      args=(self.x, foo))
 
-        func = lambda p, x: p[0]*x + p[1]
-        p0 = (1, 1)
-        args = ()
-        assert_raises(LMUserFuncError, levmar.levmar, func, p0, x, args)
+    def test_func_return_invalid_size(self):
+        x = np.arange(5, dtype=np.float64)
+        assert_raises(LMUserFuncError,
+                      levmar.levmar, self.func, self.p0, self.y, args=(x,))
 
-    def test_func_invalid_return(self):
-        x = np.arange(10, dtype=np.float64)
-        args = ()
-        ## Ruturn value of `func` and `x` musr have the same size.
-        func = lambda p, x: p[0] * np.arange(5) + p[1]
-        p0 = (1, 1)
-        assert_raises(LMUserFuncError, levmar.levmar, func, p0, x, args)
 
-    def test_bounds_not_valid_type(self):
-        x = np.arange(10, dtype=np.float64)
-        func = lambda p: p[0]*x + p[1]
-        p0 = (1, 1)
-        args = ()
+class TestBCErrors(TestCase):
 
-        invalid_bounds = [0, (0, 2), ((0,2), 2)]
+    def setUp(self):
+        self.x = np.arange(10, dtype=np.float64)
+        self.y = np.arange(10, dtype=np.float64)
+        self.func = lambda p, x: p[0]*x + p[1]
+        self.p0 = (1, 1)
+
+    def test_not_valid_type(self):
+        invalid_bounds = [0, 'bounds']
         for bounds in invalid_bounds:
             assert_raises(TypeError,
-                          levmar.levmar, func, p0, x, args, bounds=bounds)
+                          levmar.levmar, self.func, self.p0, self.y,
+                          args=(self.x,), bounds=bounds)
 
-    def test_bounds_not_valid_size(self):
-        x = np.arange(10, dtype=np.float64)
-        func = lambda p: p[0]*x + p[1]
-        p0 = (1, 1)
-        args = ()
-
+    def test_not_valid_size(self):
         invalid_bounds = [
-            (None,),
-            ((0,2), (0,2), (0,2))]
+            [None,],
+            [None, None, None,],
+            [(0,2), (0,2), (0,2)],
+            [(0,2), (0,2,3)],
+            [tuple(), (0,2)]]
         for bounds in invalid_bounds:
             assert_raises(ValueError,
-                          levmar.levmar, func, p0, x, args, bounds=bounds)
+                          levmar.levmar, self.func, self.p0, self.y,
+                          args=(self.x,), bounds=bounds)
+
+    def test_not_valid_value(self):
+        invalid_bounds = [[None, (None,'upper')],]
+        for bounds in invalid_bounds:
+            assert_raises(ValueError,
+                          levmar.levmar, self.func, self.p0, self.y,
+                          args=(self.x,), bounds=bounds)
 
 
 if __name__ == '__main__':
