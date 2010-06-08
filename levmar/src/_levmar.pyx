@@ -84,14 +84,14 @@ cdef class __LMPyFunctionBase(LMFunction):
 class LMPyFunction(__LMPyFunctionBase):
     def __init__(self, func, p, y, args, jacf=None):
         if not isinstance(args, tuple): args = args,
-        if self.is_valid_func(func, p, y, args):
+        if self._is_valid_func(func, p, y, args):
             self.func = func
         if jacf is not None:
-            if self.is_valid_func(jacf, p, y, args, is_jacf=True):
+            if self._is_valid_func(jacf, p, y, args, is_jacf=True):
                 self.jacf = jacf
         self.args = args
 
-    def is_valid_func(self, func, p, y, args, is_jacf=False):
+    def _is_valid_func(self, func, p, y, args, is_jacf=False):
         if not callable(func):
             raise TypeError("`func` must be callable")
         try:
@@ -252,12 +252,11 @@ class Output(object):
 
 
 cdef object verify_bc(object bounds, int m):
-    if not isinstance(bounds, (list,tuple)):
-        raise TypeError("`bound` must be a tuple/list")
-    else:
-        if len(bounds) != m:
-            raise ValueError("`bounds` must be the same size as `p0`")
-
+    if not isinstance(bounds, (list, tuple)):
+        raise TypeError("`bounds` must be a tuple/list")
+    if len(bounds) != m:
+        raise ValueError("`bounds` must be length of {0} "
+                         "(given length is {1})".format(m, len(bounds)))
     lb = np.empty(m)
     ub = np.empty(m)
 
@@ -266,8 +265,18 @@ cdef object verify_bc(object bounds, int m):
             lb[i] = -DBL_MAX
             ub[i] =  DBL_MAX
         elif len(b) == 2:
-            lb[i] = -DBL_MAX if b[0] == None else float(b[0])
-            ub[i] =  DBL_MAX if b[1] == None else float(b[1])
+            if b[0] in (None, np.nan, -np.inf):
+                lb[i] = -DBL_MAX
+            else:
+                lb[i] = float(b[0])
+            if b[1] in (None, np.nan, np.inf):
+                ub[i] = DBL_MAX
+            else:
+                ub[i] = float(b[1])
+        else:
+            raise ValueError("Each in `bounds` must be given as None "
+                             "or a sequence of 2 floats")
+
     return lb, ub
 
 
@@ -277,6 +286,7 @@ cdef object verify_lc(object A, object b, int m):
         raise ValueError("The shape of the constraint matrix "
                          "must be consistent with kx{0}".format(m))
     else:
+        ## the number of equations/inequalities
         k = A.size // m
     b = np.asarray(b, dtype=np.float64, order='C')
     if b.size != k:
