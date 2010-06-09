@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
+#cython: embedsignature=True
 """
 TODO:
     * Implement a weighted least square method.
     * Follow the data structures in `scipy.odr` module.
 """
-# cython: cdivision=True
 from __future__ import division
 cimport cython
 from numpy cimport *
