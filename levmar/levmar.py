@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import _levmar
 from _levmar import (Output, LMError, LMRuntimeError, LMUserFuncError,
-                     LMWarning)
+                     LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
 
 
 class Data(object):
@@ -111,7 +111,8 @@ class Levmar(object):
 
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           maxiter=1000, mu=1e-3, eps1=1e-17, eps2=1e-17, eps3=1e-17, cdif=False):
+           maxiter=1000,
+           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3, cdif=False):
     return _levmar.levmar(func, p0,  y, args, jacf,
                           bounds, A, b, C, d,
                           maxiter, mu, eps1, eps2, eps3, cdif)

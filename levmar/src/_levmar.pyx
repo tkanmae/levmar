@@ -31,6 +31,10 @@ _LM_STOP_REASONS = {
 
 _LM_STOP_REASONS_WARNED = (3, 4, 5)
 
+_LM_EPS1 = np.finfo(float).eps**(1/2)
+_LM_EPS2 = np.finfo(float).eps**(1/2)
+_LM_EPS3 = np.finfo(float).eps**(1/2)
+
 
 class LMError(Exception):
     pass
@@ -330,7 +334,8 @@ cdef object py_info(double *c_info):
 @cython.boundscheck(False)
 def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           maxiter=1000, mu=1e-3, eps1=1e-17, eps2=1e-17, eps3=1e-17, cdif=False):
+           maxiter=1000,
+           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3, cdif=False):
     """
     Parameters
     ----------
