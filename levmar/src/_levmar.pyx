@@ -584,7 +584,8 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
 
     if niter == LM_ERROR:
         if <int>info[6] == 7:
-            raise LMUserFuncError("`func` likely returned a invalid value")
+            raise LMUserFuncError("Stopped by invalid values (NaN or Inf) "
+                                  "returned by `func`")
         else:
             raise LMRuntimeError
 
