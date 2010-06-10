@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Levenberg - Marquardt non-linear minimization algorithm
 //  Copyright (C) 2004-05  Manolis Lourakis (lourakis at ics forth gr)
 //  Institute of Computer Science, Foundation for Research & Technology - Hellas
@@ -253,7 +253,7 @@ register int i;
         p[i]=__MEDIAN3(lb[i], p[i], ub[i]);
 }
 
-/* 
+/*
  * This function seeks the parameter vector p that best describes the measurements
  * vector x under box constraints.
  * More precisely, given a vector function  func : R^m --> R^n with n>=m,
@@ -270,13 +270,13 @@ register int i;
  * For details, see C. Kanzow, N. Yamashita and M. Fukushima: "Levenberg-Marquardt
  * methods for constrained nonlinear equations with strong local convergence properties",
  * Journal of Computational and Applied Mathematics 172, 2004, pp. 375-397.
- * Also, see K. Madsen, H.B. Nielsen and O. Tingleff's lecture notes on 
+ * Also, see K. Madsen, H.B. Nielsen and O. Tingleff's lecture notes on
  * unconstrained Levenberg-Marquardt at http://www.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
  */
 
 int LEVMAR_BC_DER(
   void (*func)(LM_REAL *p, LM_REAL *hx, int m, int n, void *adata), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-  void (*jacf)(LM_REAL *p, LM_REAL *j, int m, int n, void *adata),  /* function to evaluate the Jacobian \part x / \part p */ 
+  void (*jacf)(LM_REAL *p, LM_REAL *j, int m, int n, void *adata),  /* function to evaluate the Jacobian \part x / \part p */
   LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
   LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
   int m,              /* I: parameter vector dimension (i.e. #unknowns) */
@@ -296,7 +296,7 @@ int LEVMAR_BC_DER(
                       * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
                       *                                 2 - stopped by small Dp
                       *                                 3 - stopped by itmax
-                      *                                 4 - singular matrix. Restart from current p with increased mu 
+                      *                                 4 - singular matrix. Restart from current p with increased mu
                       *                                 5 - no further error reduction is possible. Restart with increased mu
                       *                                 6 - stopped by small ||e||_2
                       *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
@@ -400,15 +400,17 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
   fstate.x=x;
   fstate.adata=adata;
   fstate.nfev=&nfev;
-  
+
   /* see if starting point is within the feasile set */
   for(i=0; i<m; ++i)
     pDp[i]=p[i];
   BOXPROJECT(p, lb, ub, m); /* project to feasible set */
-  for(i=0; i<m; ++i)
-    if(pDp[i]!=p[i])
-      fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_BC_DER) "()! [%g projected to %g]\n",
-                      i, pDp[i], p[i]);
+  /*
+   * for(i=0; i<m; ++i)
+   *   if(pDp[i]!=p[i])
+   *     fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_BC_DER) "()! [%g projected to %g]\n",
+   *                     i, pDp[i], p[i]);
+   */
 
   /* compute e=x - f(p) and its L2 norm */
   (*func)(p, hx, m, n, adata); nfev=1;
@@ -457,7 +459,7 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
        * performance problem.
        *
        * Note that the non-blocking algorithm is faster on small
-       * problems since in this case it avoids the overheads of blocking. 
+       * problems since in this case it avoids the overheads of blocking.
        */
       register int l, im;
       register LM_REAL alpha, *jaclm;
@@ -503,9 +505,9 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
     }
 
 	  /* Compute ||J^T e||_inf and ||p||^2. Note that ||J^T e||_inf
-     * is computed for free (i.e. inactive) variables only. 
+     * is computed for free (i.e. inactive) variables only.
      * At a local minimum, if p[i]==ub[i] then g[i]>0;
-     * if p[i]==lb[i] g[i]<0; otherwise g[i]=0 
+     * if p[i]==lb[i] g[i]<0; otherwise g[i]=0
      */
     for(i=j=numactive=0, p_L2=jacTe_inf=0.0; i<m; ++i){
       if(ub && p[i]==ub[i]){ ++numactive; if(jacTe[i]>0.0) ++j; }
@@ -540,7 +542,7 @@ if(!(k%100)){
           if(diag_jacTjac[i]>tmp) tmp=diag_jacTjac[i]; /* find max diagonal element */
         mu=tau*tmp;
       }
-      else 
+      else
         mu=LM_CNST(0.5)*tau*p_eL2; /* use Kanzow's starting mu */
     }
 
@@ -700,7 +702,7 @@ if(!(k%100)){
         gprevtaken=0;
 
         /* NOTE: new estimate for p is in pDp, associated error in hx and its norm in pDp_eL2.
-         * These values are used below to update their corresponding variables 
+         * These values are used below to update their corresponding variables
          */
       }
       else{
@@ -805,7 +807,7 @@ breaknested: /* NOTE: this point is also reached via an explicit goto! */
   if(covar){
     LEVMAR_COVAR(jacTjac, covar, p_eL2, m, n);
   }
-                                                               
+
   if(freework) free(work);
 
 #ifdef LINSOLVERS_RETAIN_MEMORY
@@ -852,7 +854,7 @@ struct LMBC_DIF_DATA *dta=(struct LMBC_DIF_DATA *)data;
 }
 
 
-/* No Jacobian version of the LEVMAR_BC_DER() function above: the Jacobian is approximated with 
+/* No Jacobian version of the LEVMAR_BC_DER() function above: the Jacobian is approximated with
  * the aid of finite differences (forward or central, see the comment for the opts argument)
  * Ideally, this function should be implemented with a secant approach. Currently, it just calls
  * LEVMAR_BC_DER()
@@ -870,7 +872,7 @@ int LEVMAR_BC_DIF(
                        * scale factor for initial \mu, stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2 and
                        * the step used in difference approximation to the Jacobian. Set to NULL for defaults to be used.
                        * If \delta<0, the Jacobian is approximated with central differences which are more accurate
-                       * (but slower!) compared to the forward differences employed by default. 
+                       * (but slower!) compared to the forward differences employed by default.
                        */
   LM_REAL info[LM_INFO_SZ],
 					           /* O: information regarding the minimization. Set to NULL if don't care
@@ -880,7 +882,7 @@ int LEVMAR_BC_DIF(
                       * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
                       *                                 2 - stopped by small Dp
                       *                                 3 - stopped by itmax
-                      *                                 4 - singular matrix. Restart from current p with increased mu 
+                      *                                 4 - singular matrix. Restart from current p with increased mu
                       *                                 5 - no further error reduction is possible. Restart with increased mu
                       *                                 6 - stopped by small ||e||_2
                       *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
