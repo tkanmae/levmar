@@ -358,9 +358,9 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
     b : array_like, shape (k1,), optional
         A right-hand equation linear constraint vector
     C : array_like, shape (k2,m), optional
-        A linear inequality constraints matrix
+        A linear *inequality* constraints matrix
     d : array_like, shape (k2,), optional
-        A right-hand linear inequality constraint vector
+        A right-hand linear *inequality* constraint vector
     mu : float, optional
         The scale factor for initial \mu
     eps1 : float, optional
@@ -379,6 +379,16 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
     -------
     output : levmar.Output
         The output of the minimization
+
+    Notes
+    -----
+    * The linear equation constraints are specified as A*p=b where A
+    is k1xm matrix and b is k1x1  vector (See comments in
+    src/levmar-2.5/lmlec_core.c).
+
+    * The linear inequality constraints are defined as C*p>=d where C
+    is k2xm matrix and d is k2x1 vector (See comments in
+    src/levmar-2.5/lmbleic_core.c).
 
     See Also
     --------
