@@ -111,9 +111,9 @@ class Levmar(object):
 
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           maxiter=1000,
-           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3, cdif=False):
+           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+           maxiter=1000, cntdif=False):
     return _levmar.levmar(func, p0,  y, args, jacf,
                           bounds, A, b, C, d,
-                          maxiter, mu, eps1, eps2, eps3, cdif)
+                          mu, eps1, eps2, eps3, maxiter, cntdif)
 levmar.__doc__ = _levmar.levmar.__doc__

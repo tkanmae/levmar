@@ -338,8 +338,8 @@ cdef object py_info(double *c_info):
 @cython.boundscheck(False)
 def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           maxiter=1000,
-           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3, cdif=False):
+           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+           maxiter=1000, cntdif=False):
     """
     Parameters
     ----------
@@ -361,8 +361,6 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
         A linear inequality constraints matrix
     d : array_like, shape (k2,), optional
         A right-hand linear inequality constraint vector
-    maxiter : int, optional
-        The maximum number of iterations.
     mu : float, optional
         The scale factor for initial \mu
     eps1 : float, optional
@@ -371,7 +369,9 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
         The stopping threshold for ||Dp||_2
     eps3 : float, optional
         The stopping threshold for ||e||_2
-    cdif : {True, False}, optional
+    maxiter : int, optional
+        The maximum number of iterations.
+    cntdif : {True, False}, optional
         If this is True, the Jacobian is approximated with central
         differentiation.
 
@@ -427,7 +427,7 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
     opts[2] = eps2
     if eps2 > 1: raise ValueError("`eps3` must be less than 1.")
     opts[3] = eps3
-    opts[4] = LM_DIFF_DELTA if cdif else -LM_DIFF_DELTA
+    opts[4] = LM_DIFF_DELTA if cntdif else -LM_DIFF_DELTA
     if maxiter <= 0:
         raise ValueError("`maxiter` must be a positive.")
     maxiter = int(maxiter)
