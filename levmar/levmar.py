@@ -76,6 +76,10 @@ class Levmar(object):
         ----------
         p0 : array_like, shape (m,)
             The initial estimate of the parameters.
+        bounds : tuple/list, length m
+            Box-constraints. Each constraint can be a None or a tuple of two
+            float/Nones.  None in the first case means no constraint, and
+            None in the second case means -Inf/+Inf.
         A : array_like, shape (k1,m), optional
             A linear equation constraints matrix
         b : array_like, shape (k1,), optional

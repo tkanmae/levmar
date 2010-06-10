@@ -362,6 +362,10 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
     jacf : callable, optional
         A function or method to compute the Jacobian of `func`.  If this
         is None, a approximated Jacobian will be used.
+    bounds : tuple/list, length m
+        Box-constraints. Each constraint can be a None or a tuple of two
+        float/Nones.  None in the first case means no constraint, and
+        None in the second case means -Inf/+Inf.
     A : array_like, shape (k1,m), optional
         A linear equation constraints matrix
     b : array_like, shape (k1,), optional
