@@ -68,7 +68,8 @@ class Levmar(object):
             raise TypeError("`model` must be `levmar.Model` object")
 
     def run(self, p0, bounds=None, A=None, b=None, C=None, d=None,
-            maxiter=1000, mu=1e-3, eps1=1e-17, eps2=1e-17, eps3=1e-17, cdif=False):
+            mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+            maxiter=1000, cntdif=False):
         """Run the fitting.
 
         Parameters
@@ -83,8 +84,6 @@ class Levmar(object):
             A linear inequality constraints matrix
         d : array_like, shape (k2,), optional
             A right-hand linear inequality constraint vector
-        maxiter : int, optional
-            The maximum number of iterations.
         mu : float, optional
             The scale factor for initial \mu
         eps1 : float, optional
@@ -93,7 +92,9 @@ class Levmar(object):
             The stopping threshold for ||Dp||_2
         eps3 : float, optional
             The stopping threshold for ||e||_2
-        cdif : {True, False}, optional
+        maxiter : int, optional
+            The maximum number of iterations.
+        cntdif : {True, False}, optional
             If this is True, the Jacobian is approximated with central
             differentiation.
 
@@ -105,7 +106,7 @@ class Levmar(object):
         args = data.x + model.args
         output = _levmar.levmar(
             model.func, p0, data.y, args, model.jacf,
-            bounds, A, b, C, d, maxiter, mu, eps1, eps2, eps3, cdif)
+            bounds, A, b, C, d, mu, eps1, eps2, eps3, maxiter, cntdif)
         return output
 
 
