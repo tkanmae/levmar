@@ -421,8 +421,11 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
     py_func = LMPyFunction(func, p, y, args, jacf)
     ## Set the iteration parameters: `opts` and `maxiter`
     opts[0] = mu
+    if eps1 > 1: raise ValueError("`eps1` must be less than 1.")
     opts[1] = eps1
+    if eps2 > 1: raise ValueError("`eps2` must be less than 1.")
     opts[2] = eps2
+    if eps2 > 1: raise ValueError("`eps3` must be less than 1.")
     opts[3] = eps3
     opts[4] = LM_DIFF_DELTA if cdif else -LM_DIFF_DELTA
     if maxiter <= 0:
