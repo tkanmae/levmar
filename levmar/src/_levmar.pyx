@@ -31,9 +31,13 @@ _LM_STOP_REASONS = {
 
 _LM_STOP_REASONS_WARNED = (3, 4, 5)
 
-_LM_EPS1 = np.finfo(float).eps**(1/2)
-_LM_EPS2 = np.finfo(float).eps**(1/2)
-_LM_EPS3 = np.finfo(float).eps**(1/2)
+__eps = np.finfo(float).eps
+## The stopping threshold for ||J^T e||_inf
+_LM_EPS1 = __eps**(1/2)
+## The stopping threshold for ||Dp||_2
+_LM_EPS2 = __eps**(1/2)
+## The stopping threshold for ||e||_2
+_LM_EPS3 = __eps**(1/2)
 
 
 class LMError(Exception):
