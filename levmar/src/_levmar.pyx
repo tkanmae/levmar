@@ -92,30 +92,39 @@ cdef class __LMPyFunctionBase(LMFunction):
 class LMPyFunction(__LMPyFunctionBase):
     def __init__(self, func, p, y, args, jacf=None):
         if not isinstance(args, tuple): args = args,
-        if self._is_valid_func(func, p, y, args):
+        if self._is_func_valid(func, p, y, args):
             self.func = func
-        if jacf is not None:
-            if self._is_valid_func(jacf, p, y, args, is_jacf=True):
-                self.jacf = jacf
+        if jacf is not None and self._is_jacf_valid(jacf, p, y, args):
+            self.jacf = jacf
         self.args = args
 
-    def _is_valid_func(self, func, p, y, args, is_jacf=False):
+    def _is_func_valid(self, func, p, y, args):
+        ret = self._verify_callable(func, p, args)
+        if ret.size != y.shape[0]:
+            raise LMUserFuncError(
+                "`{0.__name__}()` returned a invalid size vector: "
+                "{1} expected but {2} given"
+                .format(func, y.shape[0], ret.size))
+        return True
+
+    def _is_jacf_valid(self, jacf, p, y, args):
+        ret = self._verify_callable(jacf, p, args)
+        if ret.size != p.shape[0]*y.shape[0]:
+            raise LMUserFuncError(
+                "`{0.__name__}()` returned a invalid size vector: "
+                "{1} expected but {2} given"
+                .format(jacf, y.shape[0]*p.shape[0], ret.size))
+        return True
+
+    def _verify_callable(self, func, p, args):
         if not callable(func):
-            raise TypeError("`func` must be callable")
+            raise TypeError("`func/jacf` must be callable")
         try:
             args = (p,) + args
             ret = func(*args)
         except Exception, e:
             raise LMUserFuncError(e)
-
-        if is_jacf and ret.ndim != 2:
-            raise LMUserFuncError("`{0.__name__}()` must return "
-                                  "an 2-dimensional ndarray".format(func))
-        nret = p.shape[0]*y.shape[0] if is_jacf else y.shape[0]
-        if ret.size != nret:
-            raise LMUserFuncError("`{0.__name__}()` returned "
-                                  "an ndarray of invalid size".format(func))
-        return True
+        return ret
 
 
 cdef void callback_func(double *p, double *y, int m, int n, void *ctx):
