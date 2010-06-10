@@ -3,7 +3,7 @@
 """
 TODO:
     * Implement a weighted least square method.
-    * Follow the data structures in `scipy.odr` module.
+    * Check consistency of `jacf` with `func` using `dlevmar_chkjac()`.
 """
 from __future__ import division
 cimport cython
