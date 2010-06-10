@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
 
 cdef extern from "Python.h":
-    ctypedef struct PyTypeObject
-    ctypedef struct PyObject:
-        Py_ssize_t ob_refcnt
-        PyTypeObject *ob_type
-
-    ## from python_object.pxd
-    object PyObject_CallObject(object callable_object, object args)
-
-    ## from python_sequence.pxd
-    object PySequence_Concat(object o1, object o2)
+    object PyObject_CallObject(object obj, object args)
+    object PySequence_Concat(object obj1, object obj2)
 
 
 cdef extern from "stdlib.h":
-    void *memcpy(void *dest, void *dest, size_t n)
+    void *memcpy(void *dest, void *src, size_t n)
 
 
 cdef extern from "float.h":
