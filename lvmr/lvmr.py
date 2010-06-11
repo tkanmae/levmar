@@ -5,7 +5,7 @@
 # ----------------------------------------------------------------------
 import _lvmr
 from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
-                     LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
+                   LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
 
 
 class Data(object):
@@ -13,7 +13,7 @@ class Data(object):
 
     Attributes
     ----------
-    x : array_like
+    x : array_like, shape (n,)
     y : array_like, shape (n,)
     """
     __slots__ = ['x', 'y', 'wt']

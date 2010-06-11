@@ -95,6 +95,10 @@ cdef class __LMPyFunctionBase(LMFunction):
 class LMPyFunction(__LMPyFunctionBase):
     def __init__(self, func, p, y, args, jacf=None):
         if not isinstance(args, tuple): args = args,
+        ## Make sure if `func/jacf`
+        ##   1) is callable
+        ##   2) does not raise exception with given parameters
+        ##   3) returns a valid size array
         if self._is_func_valid(func, p, y, args):
             self.func = func
         if jacf is not None and self._is_jacf_valid(jacf, p, y, args):

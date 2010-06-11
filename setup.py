@@ -17,7 +17,8 @@ lib_dir = 'levmar-2.5'
 
 
 def extention_src():
-    """Return a list containing the paths to the extension source files"""
+    """Return a list containing the paths to the extension source
+    files"""
     src = ['_lvmr.c']
     src = [os.path.join(src_dir, f) for f in src]
     include_dirs = [src_dir, lib_dir]
@@ -25,7 +26,8 @@ def extention_src():
 
 
 def library_src():
-    """Return a list containing the paths to the C-library source files"""
+    """Return a list containing the paths to the C levmar library source
+    files"""
     src = ('lm.c', 'Axb.c', 'misc.c', 'lmlec.c',
            'lmbc.c', 'lmblec.c', 'lmbleic.c')
     src = [os.path.join(lib_dir, f) for f in src]
@@ -39,10 +41,10 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('lvmr', parent_package, top_path,
                            package_path=root_dir)
 
-    # -- Add `levmar` C library
+    ## Add `levmar` C library
     config.add_library('levmar', sources=library_src())
 
-    # -- Add `levmar` extension module.
+    ## Add `levmar` extension module.
     src, inc_dirs = extention_src()
     lapack_opts = get_info('lapack_opt')
     config.add_extension('_lvmr',
@@ -51,7 +53,7 @@ def configuration(parent_package='', top_path=None):
                          libraries=['levmar'],
                          extra_info=lapack_opts)
 
-    # -- Add `tests` directory.
+    ## Add `tests` directory.
     config.add_data_dir(('tests', os.path.join(root_dir, 'tests')))
 
     return config
