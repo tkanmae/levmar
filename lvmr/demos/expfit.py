@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 import numpy as np
-import levmar
+import lvmr
 
 
 def expfunc(p, x):
@@ -27,5 +27,5 @@ y = yt + 0.1 * np.random.randn(x.size)
 p0 = 1.0, 0.0, 0.0
 
 for i in range(10):
-    ret = levmar.levmar(expfunc, p0, y, args=(x,))
-    ret = levmar.levmar(expfunc, p0, y, jacf=jac_expfunc, args=(x,))
+    ret = lvmr.levmar(expfunc, p0, y, args=(x,))
+    ret = lvmr.levmar(expfunc, p0, y, jacf=jac_expfunc, args=(x,))

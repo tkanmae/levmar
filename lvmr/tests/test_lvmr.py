@@ -5,7 +5,7 @@ from math import (atan, pi, sqrt)
 import numpy as np
 from numpy.testing import *
 
-import levmar
+import lvmr
 
 
 _OPTS = {
@@ -40,17 +40,17 @@ class TestRosen(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_rosen}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.rosen, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.rosen, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.rosen, self.p0, self.x, **_OPTS)
+        ret = lvmr.levmar(self.rosen, self.p0, self.x, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.rosen, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.rosen, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -84,19 +84,19 @@ class TestPowell(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_powell}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.powell, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.powell, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     @decorators.knownfailureif(True)
     def test_diff(self):
-        ret = levmar.levmar(self.powell, self.p0, self.x, **_OPTS)
+        ret = lvmr.levmar(self.powell, self.p0, self.x, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     @decorators.knownfailureif(True)
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.powell, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.powell, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -133,17 +133,17 @@ class TestModRos(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_modros}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.modros, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.modros, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=5)
 
     def test_diff(self):
-        ret = levmar.levmar(self.modros, self.p0, self.x, **_OPTS)
+        ret = lvmr.levmar(self.modros, self.p0, self.x, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.modros, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.modros, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -166,13 +166,13 @@ class TestWood(TestCase):
         return x
 
     def test_diff(self):
-        ret = levmar.levmar(self.wood, self.p0, self.x, **_OPTS)
+        ret = lvmr.levmar(self.wood, self.p0, self.x, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.wood, self.p0, self.x, **kw)
+        ret = lvmr.levmar(self.wood, self.p0, self.x, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -202,17 +202,17 @@ class TestMeyer(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_meyer}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.meyer, self.p0, self.y, args=(self.x,), **kw)
+        ret = lvmr.levmar(self.meyer, self.p0, self.y, args=(self.x,), **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
     def test_diff(self):
-        ret = levmar.levmar(self.meyer, self.p0, self.y, args=(self.x,), **_OPTS)
+        ret = lvmr.levmar(self.meyer, self.p0, self.y, args=(self.x,), **_OPTS)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.meyer, self.p0, self.y, args=(self.x,), **kw)
+        ret = lvmr.levmar(self.meyer, self.p0, self.y, args=(self.x,), **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
 
@@ -249,17 +249,17 @@ class TestOsborne(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_osborne}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.osborne, self.p0, self.y, args=(self.x,), **kw)
+        ret = lvmr.levmar(self.osborne, self.p0, self.y, args=(self.x,), **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
     def test_diff(self):
-        ret = levmar.levmar(self.osborne, self.p0, self.y, args=(self.x,), **_OPTS)
+        ret = lvmr.levmar(self.osborne, self.p0, self.y, args=(self.x,), **_OPTS)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.osborne, self.p0, self.y, args=(self.x,), **kw)
+        ret = lvmr.levmar(self.osborne, self.p0, self.y, args=(self.x,), **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
 
@@ -307,17 +307,17 @@ class TestHelVal(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_helval}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.helval, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.helval, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.helval, self.p0, self.y, **_OPTS)
+        ret = lvmr.levmar(self.helval, self.p0, self.y, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.helval, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.helval, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -360,19 +360,19 @@ class TestBt3(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_bt3, 'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.bt3, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.bt3, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.bt3, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.bt3, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.bt3, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.bt3, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
 
@@ -407,19 +407,19 @@ class TestHS28(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hs28, 'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs28, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs28, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=5)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs28, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs28, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=3)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs28, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs28, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
 
@@ -459,19 +459,19 @@ class TestHS48(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hs48, 'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs48, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs48, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=5)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs48, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs48, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=5)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs48, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs48, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=5)
 
 
@@ -514,19 +514,19 @@ class TestHS51(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hs51, 'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs51, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs51, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=4)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs51, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs51, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=3)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs51, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.hs51, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=3)
 
 
@@ -560,17 +560,17 @@ class TestHS01(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hs01}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **_OPTS)
+        ret = lvmr.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hs01, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -603,17 +603,17 @@ class TestHS21(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hs21}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **_OPTS)
+        ret = lvmr.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hs21, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -661,17 +661,17 @@ class TestHatfldB(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hatfldb}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **_OPTS)
+        ret = lvmr.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hatfldb, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -723,17 +723,17 @@ class TestHatfldC(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_hatfldc}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
-        ret = levmar.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **_OPTS)
+        ret = lvmr.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.hatfldc, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -809,17 +809,17 @@ class TestCombust(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_combust}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.combust, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.combust, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
     def test_diff(self):
-        ret = levmar.levmar(self.combust, self.p0, self.y, bounds=self.bc, **_OPTS)
+        ret = lvmr.levmar(self.combust, self.p0, self.y, bounds=self.bc, **_OPTS)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
     def test_cntdiff(self):
         kw = {'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.combust, self.p0, self.y, bounds=self.bc, **kw)
+        ret = lvmr.levmar(self.combust, self.p0, self.y, bounds=self.bc, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=1)
 
 
@@ -857,19 +857,19 @@ class TestMods235(TestCase):
         kw = {'jacf': self.jac_mods235,
               'A': self.A, 'b': self.b, 'bounds': self.bounds}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mods235, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mods235, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b, 'bounds': self.bounds}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mods235, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mods235, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'bounds': self.bounds, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mods235, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mods235, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -928,19 +928,19 @@ class TestMod1HS52(TestCase):
         kw = {'jacf': self.jac_mod1hs52,
               'A': self.A, 'b': self.b, 'bounds': self.bounds}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod1hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod1hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
         kw = {'A': self.A, 'b': self.b, 'bounds': self.bounds}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod1hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod1hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt, decimal=3)
 
     def test_cntdiff(self):
         kw = {'A': self.A, 'b': self.b, 'bounds': self.bounds, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod1hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod1hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 
@@ -1003,19 +1003,19 @@ class TestMod2HS52(TestCase):
     def test_der(self):
         kw = {'jacf': self.jac_mod2hs52, 'C': self.C, 'd': self.d}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod2hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod2hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_diff(self):
         kw = {'C': self.C, 'd': self.d}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod2hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod2hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
     def test_cntdiff(self):
         kw = {'C': self.C, 'd': self.d, 'cntdif': True}
         kw.update(_OPTS)
-        ret = levmar.levmar(self.mod2hs52, self.p0, self.y, **kw)
+        ret = lvmr.levmar(self.mod2hs52, self.p0, self.y, **kw)
         assert_array_almost_equal(ret.p, self.pt)
 
 

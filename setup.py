@@ -7,7 +7,7 @@ TODO:
 import sys
 import os
 
-root_dir = 'levmar'
+root_dir = 'lvmr'
 version = '0.10'
 src_dir = os.path.join(root_dir, 'src')
 lib_dir = 'levmar-2.5'
@@ -15,7 +15,7 @@ lib_dir = 'levmar-2.5'
 
 def extention_src():
     """Return a list containing the paths to the extension source files"""
-    src = ['_levmar.c']
+    src = ['_lvmr.c']
     src = [os.path.join(src_dir, f) for f in src]
     include_dirs = [src_dir, lib_dir]
     return src, include_dirs
@@ -33,7 +33,7 @@ def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
 
-    config = Configuration('levmar', parent_package, top_path,
+    config = Configuration('lvmr', parent_package, top_path,
                            package_path=root_dir)
 
     # -- Add `levmar` C library
@@ -42,7 +42,7 @@ def configuration(parent_package='', top_path=None):
     # -- Add `levmar` extension module.
     src, inc_dirs = extention_src()
     lapack_opts = get_info('lapack_opt')
-    config.add_extension('_levmar',
+    config.add_extension('_lvmr',
                          sources=src,
                          include_dirs=inc_dirs,
                          libraries=['levmar'],
