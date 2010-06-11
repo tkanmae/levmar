@@ -1,5 +1,8 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------
+# Copyright (c) 2010 Takeshi Kanmae
+# ----------------------------------------------------------------------
 from __future__ import division
 from math import (atan, pi, sqrt)
 import numpy as np

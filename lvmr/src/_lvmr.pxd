@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------
+# Copyright (c) 2010 Takeshi Kanmae
+# ----------------------------------------------------------------------
 
 cdef extern from "Python.h":
     object PyObject_CallObject(object obj, object args)

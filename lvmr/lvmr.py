@@ -1,5 +1,8 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------
+# Copyright (c) 2010 Takeshi Kanmae
+# ----------------------------------------------------------------------
 import _lvmr
 from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
                      LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
