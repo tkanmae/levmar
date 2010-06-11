@@ -107,9 +107,9 @@ class Levmar(object):
         output : levmar.Output
             The output of the minimization
         """
-        args = data.x + model.args
+        args = (self.data.x,) + self.model.args
         output = _levmar.levmar(
-            model.func, p0, data.y, args, model.jacf,
+            self.model.func, p0, self.data.y, args, self.model.jacf,
             bounds, A, b, C, d, mu, eps1, eps2, eps3, maxiter, cntdif)
         return output
 
