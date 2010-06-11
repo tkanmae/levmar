@@ -1,11 +1,10 @@
-The MIT license applies to all files except those in
-./levmar/src/levmar-2.5.
+The MIT license applies to all files except those in ./levmar-2.5.
 
 
-All of the software in ./levmar/src/levmar-2.5 and only the software
-therein is copyrighted by Manolis Lourakis and is licensed under the
-terms and conditions of the GNU General Public License (GPL).  See the
-file LICENSE in ./levmar/src/levmar-2.5 for detail.
+All of the software in ./levmar-2.5 and only the software therein is
+copyrighted by Manolis Lourakis and is licensed under the terms and
+conditions of the GNU General Public License (GPL).  See the file
+LICENSE in ./levmar-2.5 for detail.
 
 
 Copyright (c) 2009 Takeshi Kanmae

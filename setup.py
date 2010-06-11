@@ -10,7 +10,7 @@ import os
 root_dir = 'levmar'
 version = '0.10'
 src_dir = os.path.join(root_dir, 'src')
-lib_dir = os.path.join(src_dir, 'levmar-2.5')
+lib_dir = 'levmar-2.5'
 
 
 def extention_src():
