@@ -2,7 +2,6 @@
 # ----------------------------------------------------------------------
 # Copyright (c) 2010 Takeshi Kanmae
 # ----------------------------------------------------------------------
-#cython: embedsignature=True
 """
 TODO:
     * Implement a weighted least square method.
