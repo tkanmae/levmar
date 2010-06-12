@@ -93,11 +93,9 @@ cdef class __LMPyFunctionBase(LMFunction):
 
 class LMPyFunction(__LMPyFunctionBase):
     def __init__(self, func, p, y, args, jacf=None):
-        if not isinstance(args, tuple): args = args,
         ## Make sure if `func/jacf`
-        ##   1) is callable
-        ##   2) does not raise exception with given parameters
-        ##   3) returns a valid size array
+        ##   1) does not raise exception with given parameters
+        ##   2) returns a valid size array
         if self._is_func_valid(func, p, y, args):
             self.func = func
         if jacf is not None and self._is_jacf_valid(jacf, p, y, args):
@@ -105,7 +103,11 @@ class LMPyFunction(__LMPyFunctionBase):
         self.args = args
 
     def _is_func_valid(self, func, p, y, args):
-        ret = self._verify_callable(func, p, args)
+        try:
+            args = (p,) + args
+            ret = func(*args)
+        except Exception, e:
+            raise LMUserFuncError(e)
         if ret.size != y.shape[0]:
             raise LMUserFuncError(
                 "`{0.__name__}()` returned a invalid size vector: "
@@ -114,23 +116,17 @@ class LMPyFunction(__LMPyFunctionBase):
         return True
 
     def _is_jacf_valid(self, jacf, p, y, args):
-        ret = self._verify_callable(jacf, p, args)
+        try:
+            args = (p,) + args
+            ret = jacf(*args)
+        except Exception, e:
+            raise LMUserFuncError(e)
         if ret.size != p.shape[0]*y.shape[0]:
             raise LMUserFuncError(
                 "`{0.__name__}()` returned a invalid size vector: "
                 "{1} expected but {2} given"
                 .format(jacf, y.shape[0]*p.shape[0], ret.size))
         return True
-
-    def _verify_callable(self, func, p, args):
-        if not callable(func):
-            raise TypeError("`func/jacf` must be callable")
-        try:
-            args = (p,) + args
-            ret = func(*args)
-        except Exception, e:
-            raise LMUserFuncError(e)
-        return ret
 
 
 cdef void callback_func(double *p, double *y, int m, int n, void *ctx):
@@ -351,81 +347,22 @@ cdef object py_info(double *c_info):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
-           bounds=None, A=None, b=None, C=None, d=None,
-           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
-           maxiter=1000, cntdif=False):
-    """
-    Parameters
-    ----------
-    func : callable
-        A function or method taking, at least, one length of n vector
-        and returning a length of m vector.
-    p0 : array_like, shape (m,)
-        The initial estimate of the parameters.
-    args : tuple, optional
-        Extra arguments passed to `func` (and `jacf`) in this tuple.
-    jacf : callable, optional
-        A function or method to compute the Jacobian of `func`.  If this
-        is None, a approximated Jacobian will be used.
-    bounds : tuple/list, length m
-        Box-constraints. Each constraint can be a None or a tuple of two
-        float/Nones.  None in the first case means no constraint, and
-        None in the second case means -Inf/+Inf.
-    A : array_like, shape (k1,m), optional
-        A linear equation constraints matrix
-    b : array_like, shape (k1,), optional
-        A right-hand equation linear constraint vector
-    C : array_like, shape (k2,m), optional
-        A linear *inequality* constraints matrix
-    d : array_like, shape (k2,), optional
-        A right-hand linear *inequality* constraint vector
-    mu : float, optional
-        The scale factor for initial \mu
-    eps1 : float, optional
-        The stopping threshold for ||J^T e||_inf
-    eps2 : float, optional
-        The stopping threshold for ||Dp||_2
-    eps3 : float, optional
-        The stopping threshold for ||e||_2
-    maxiter : int, optional
-        The maximum number of iterations.
-    cntdif : {True, False}, optional
-        If this is True, the Jacobian is approximated with central
-        differentiation.
-
-    Returns
-    -------
-    output : levmar.Output
-        The output of the minimization
-
-    Notes
-    -----
-    * The linear equation constraints are specified as A*p=b where A
-    is k1xm matrix and b is k1x1  vector (See comments in
-    src/levmar-2.5/lmlec_core.c).
-
-    * The linear inequality constraints are defined as C*p>=d where C
-    is k2xm matrix and d is k2x1 vector (See comments in
-    src/levmar-2.5/lmbleic_core.c).
-
-    See Also
-    --------
-    levmar.Output
-    """
-    ## Make a copy of `p0`
-    cdef ndarray[dtype_t,ndim=1,mode='c'] p = \
-            np.array(p0, dtype=np.float64, ndmin=1)
-    ## Ensure `y` is a C-contiguous array
-    y = np.asarray(y, dtype=np.float64, order='C')
-
+def __run_levmar(
+    func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None,
+    bounds=None, A=None, b=None, C=None, d=None,
+    mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+    maxiter=1000, cntdif=False):
     cdef:
+        ## Make a copy of `p0`
+        ndarray[dtype_t,ndim=1,mode='c'] p = \
+                np.array(p0, dtype=np.float64, ndmin=1)
+
         int n = y.shape[0]
         int m = p.shape[0]
-        # int maxiter = 0
         int niter = 0
         double opts[LM_OPTS_SZ]
         double info[LM_INFO_SZ]
+
         ## Box constraints
         ndarray[dtype_t, ndim=1] lb
         ndarray[dtype_t, ndim=1] ub
@@ -626,3 +563,216 @@ def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
             raise LMRuntimeError
 
     return output
+
+
+class _Data(object):
+    """The Data class stores the data to fit.
+
+    Attributes
+    ----------
+    x : array_like, shape (n,)
+    y : array_like, shape (n,)
+    """
+    __slots__ = ['x', 'y', 'wt']
+    def __init__(self, x, y, wt=None):
+        x = np.array(x, dtype=np.float64, order='C', copy=False, ndim=1)
+        y = np.array(y, dtype=np.float64, order='C', copy=False, ndim=1)
+        if x.size != y.size:
+            raise ValueError("`x` and `y` must have the same size")
+        if wt is not None:
+            wt = np.array(x, dtype=np.float64, order='C', copy=False, ndim=1)
+            if wt.size != y.size:
+                raise ValueError("`wt` and `y` must have the same size")
+        self.x = x
+        self.y = y
+        self.wt = wt
+
+
+class _Model(object):
+    """The Model class stores information about the model.
+
+    Attributes
+    ----------
+    func : callable
+        A function or method taking, at least, one length of n vector
+        and returning a length of m vector.  The signature must be like
+        `func(p, x, args) -> y`.
+    jacf : callable, optional
+        A function or method to compute the Jacobian of `func`.  The
+        signature must be like `jacf(p, x, args)`.  If this is None, a
+        approximated Jacobian will be used.
+    extra_args : tuple, optional
+        Extra arguments passed to `func` (and `jacf`) in this tuple.
+    """
+    __slot__ = ['func', 'jacf', 'extra_args']
+    def __init__(self, func, jacf=None, extra_args=()):
+        if not callable(func):
+            raise TypeError("`func` must be callable")
+        argc_func = func.func_code.co_argcount
+        if jacf is not None:
+            if not callable(jacf):
+                raise TypeError("`jacf` must be callable")
+            argc_jacf = jacf.func_code.co_argcount
+            if argc_func != argc_jacf:
+                ValueError("`func` and `jacf` must have the same number of arguments")
+        if not isinstance(args, tuple): args = args,
+        if argc_func - 1 != len(extra_args):
+            ValueError("{0} arguments expected in `extra_args`: "
+                       "{1} given".format(argc_func, len(extra_args)))
+        self.func = func
+        self.jacf = jacf
+        self.extra_args = extra_args
+
+
+class _Levmar(object):
+    """
+    Attributes
+    ----------
+    data : Data
+        The Data object
+    model : Model
+        The Model object
+
+    Methods
+    -------
+    run() : Run the fitting.
+    """
+    __slots__ = ['data', 'model', '_py_func']
+    def __init__(self, data, model):
+        if isinstance(data, _Data):
+            self.data = data
+        else:
+            raise TypeError("`data` must be a instance of `lvmr._Data`")
+        if isinstance(model, _Model):
+            self.model = model
+        else:
+            raise TypeError("`model` must be a instance of `lvmr._Model`")
+
+    def run(self, p0, bounds=None, A=None, b=None, C=None, d=None,
+            mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+            maxiter=1000, cntdif=False):
+        """Run the fitting.
+
+        Parameters
+        ----------
+        p0 : array_like, shape (m,)
+            The initial estimate of the parameters.
+        bounds : tuple/list, length m
+            Box-constraints. Each constraint can be a None or a tuple of two
+            float/Nones.  None in the first case means no constraint, and
+            None in the second case means -Inf/+Inf.
+        A : array_like, shape (k1,m), optional
+            A linear equation constraints matrix
+        b : array_like, shape (k1,), optional
+            A right-hand equation linear constraint vector
+        C : array_like, shape (k2,m), optional
+            A linear inequality constraints matrix
+        d : array_like, shape (k2,), optional
+            A right-hand linear inequality constraint vector
+        mu : float, optional
+            The scale factor for initial \mu
+        eps1 : float, optional
+            The stopping threshold for ||J^T e||_inf
+        eps2 : float, optional
+            The stopping threshold for ||Dp||_2
+        eps3 : float, optional
+            The stopping threshold for ||e||_2
+        maxiter : int, optional
+            The maximum number of iterations.
+        cntdif : {True, False}, optional
+            If this is True, the Jacobian is approximated with central
+            differentiation.
+
+        Returns
+        -------
+        output : lvmr.Output
+            The output of the minimization
+        """
+        args = (self.data.x) + self.model.extra_args
+        return __run_levmar(
+            self.model.func, p0, self.data.y, args, self.model.jacf,
+            bounds, A, b, C, d,
+            mu, eps1, eps2, eps3, maxiter, cntdif)
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def levmar(func, p0, ndarray[dtype_t,ndim=1] y, args=(), jacf=None,
+           bounds=None, A=None, b=None, C=None, d=None,
+           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+           maxiter=1000, cntdif=False):
+    """
+    Parameters
+    ----------
+    func : callable
+        A function or method taking, at least, one length of n vector
+        and returning a length of m vector.
+    p0 : array_like, shape (m,)
+        The initial estimate of the parameters.
+    args : tuple, optional
+        Extra arguments passed to `func` (and `jacf`) in this tuple.
+    jacf : callable, optional
+        A function or method to compute the Jacobian of `func`.  If this
+        is None, a approximated Jacobian will be used.
+    bounds : tuple/list, length m
+        Box-constraints. Each constraint can be a None or a tuple of two
+        float/Nones.  None in the first case means no constraint, and
+        None in the second case means -Inf/+Inf.
+    A : array_like, shape (k1,m), optional
+        A linear equation constraints matrix
+    b : array_like, shape (k1,), optional
+        A right-hand equation linear constraint vector
+    C : array_like, shape (k2,m), optional
+        A linear *inequality* constraints matrix
+    d : array_like, shape (k2,), optional
+        A right-hand linear *inequality* constraint vector
+    mu : float, optional
+        The scale factor for initial \mu
+    eps1 : float, optional
+        The stopping threshold for ||J^T e||_inf
+    eps2 : float, optional
+        The stopping threshold for ||Dp||_2
+    eps3 : float, optional
+        The stopping threshold for ||e||_2
+    maxiter : int, optional
+        The maximum number of iterations.
+    cntdif : {True, False}, optional
+        If this is True, the Jacobian is approximated with central
+        differentiation.
+
+    Returns
+    -------
+    output : levmar.Output
+        The output of the minimization
+
+    Notes
+    -----
+    * The linear equation constraints are specified as A*p=b where A
+    is k1xm matrix and b is k1x1  vector (See comments in
+    src/levmar-2.5/lmlec_core.c).
+
+    * The linear inequality constraints are defined as C*p>=d where C
+    is k2xm matrix and d is k2x1 vector (See comments in
+    src/levmar-2.5/lmbleic_core.c).
+
+    See Also
+    --------
+    levmar.Output
+    """
+    if not callable(func):
+        raise TypeError("`func` must be callable")
+    argc_func = func.func_code.co_argcount
+    if jacf is not None:
+        if not callable(jacf):
+            raise TypeError("`jacf` must be callable")
+        argc_jacf = jacf.func_code.co_argcount
+        if argc_func != argc_jacf:
+            ValueError("`func` and `jacf` must have the same number of arguments")
+    if not isinstance(args, tuple): args = args,
+    if argc_func - 1 != len(args):
+        ValueError("{0} arguments expected in `args`: "
+                   "{1} given".format(argc_func, len(args)))
+
+    return __run_levmar(func, p0, y, args, jacf,
+                        bounds, A, b, C, d,
+                        mu, eps1, eps2, eps3, maxiter, cntdif)

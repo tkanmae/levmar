@@ -7,8 +7,13 @@ import _lvmr
 from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
                    LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
 
+__Data = _lvmr._Data
+__Model = _lvmr._Model
+__Levmar = _lvmr._Levmar
 
-class Data(object):
+
+class Data(__Data):
+    __slots__ = ['x', 'y', 'wt']
     """The Data class stores the data to fit.
 
     Attributes
@@ -16,14 +21,11 @@ class Data(object):
     x : array_like, shape (n,)
     y : array_like, shape (n,)
     """
-    __slots__ = ['x', 'y', 'wt']
     def __init__(self, x, y, wt=None):
-        self.x = x
-        self.y = y
-        self.wt = wt
+        __Data.__init__(self, x, t, wt)
 
 
-class Model(object):
+class Model(__Model):
     """The Model class stores information about the model.
 
     Attributes
@@ -36,39 +38,18 @@ class Model(object):
         A function or method to compute the Jacobian of `func`.  The
         signature must be like `jacf(p, x, args)`.  If this is None, a
         approximated Jacobian will be used.
-    args : tuple, optional
+    extra_args : tuple, optional
         Extra arguments passed to `func` (and `jacf`) in this tuple.
     """
-    __slot__ = ['func', 'jacf', 'args']
-    def __init__(self, func, jacf=None, args=()):
-        self.func = func
-        self.jacf = jacf
-        self.args = args
+    __slot__ = ['func', 'jacf', 'extra_args']
+    def __init__(self, func, jacf=None, extra_args=()):
+        __Model.__init__(self, func, jacf, extra_args)
 
 
-class Levmar(object):
-    """
-    Attributes
-    ----------
-    data : Data
-        The Data object
-    model : Model
-        The Model object
-
-    Methods
-    -------
-    run() : Run the fitting.
-    """
+class Levmar(__Levmar):
     __slots__ = ['data', 'model']
     def __init__(self, data, model):
-        if isinstance(data, Data):
-            self.data = data
-        else:
-            raise TypeError("`data` must be `lvmr.Data` object")
-        if isinstance(model, Model):
-            self.model = model
-        else:
-            raise TypeError("`model` must be `lvmr.Model` object")
+        __Levmar.__init__(self, data, model)
 
     def run(self, p0, bounds=None, A=None, b=None, C=None, d=None,
             mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
@@ -110,11 +91,8 @@ class Levmar(object):
         output : lvmr.Output
             The output of the minimization
         """
-        args = (self.data.x,) + self.model.args
-        output = _lvmr.levmar(
-            self.model.func, p0, self.data.y, args, self.model.jacf,
-            bounds, A, b, C, d, mu, eps1, eps2, eps3, maxiter, cntdif)
-        return output
+        __Levmar.run(p0, bounds, A, b, C, d,
+                     mu, eps1, eps2, eps3, maxiter, cntdif)
 
 
 def levmar(func, p0, y, args=(), jacf=None,
