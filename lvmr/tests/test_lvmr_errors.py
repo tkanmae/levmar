@@ -19,29 +19,26 @@ class TestFuncErrors(TestCase):
         self.func = lambda p, x: p[0]*x + p[1]
         self.p0 = (1, 1)
 
-    def test_func_not_callable(self):
+    def test_not_callable(self):
         invalid_funcs = (1, 'foo', [1, 2], (1, 2), {'foo': 1})
-        for func in invalid_funcs:
+        for f in invalid_funcs:
+            ## `func`
             assert_raises(TypeError,
-                          lvmr.levmar, func, self.p0, self.y,
+                          lvmr.levmar, f, self.p0, self.y,
                           args=(self.x,))
-
-    def test_jacf_not_callable(self):
-        invalid_jacfs = (1, 'foo', [1, 2], (1, 2), {'foo': 1})
-        for jacf in invalid_jacfs:
+            ## `jacf`
             assert_raises(TypeError,
                           lvmr.levmar, self.func, self.p0, self.y,
-                          args=(self.x,), jacf=jacf)
+                          args=(self.x,), jacf=f)
 
-    def test_func_invalid_call(self):
+    def test_invalid_args(self):
         assert_raises(LMUserFuncError,
-                      lvmr.levmar, self.func, self.p0, self.y, args=())
-        foo = ()
+                      lvmr.levmar, self.func, self.p0, self.y)
         assert_raises(LMUserFuncError,
                       lvmr.levmar, self.func, self.p0, self.y,
-                      args=(self.x, foo))
+                      args=(self.x, ()))
 
-    def test_func_return_invalid_size(self):
+    def test_return_invalid_size(self):
         x = np.arange(5, dtype=np.float64)
         assert_raises(LMUserFuncError,
                       lvmr.levmar, self.func, self.p0, self.y, args=(x,))
