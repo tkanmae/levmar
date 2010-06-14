@@ -64,9 +64,6 @@ class Model(object):
                 LMUserFuncError("`func` and `jacf` must have the same number "
                                 "of arguments")
         if not isinstance(args, tuple): args = args,
-        if argc_func - 2 != len(extra_args):
-            ValueError("{0} arguments expected in `extra_args`: "
-                       "{1} given".format(argc_func, len(extra_args)))
         self.func = func
         self.jacf = jacf
         self.extra_args = extra_args
@@ -146,9 +143,6 @@ def levmar(func, p0, y, args=(), jacf=None,
             LMUserFuncError("`func` and `jacf` must have the same number "
                             "of arguments")
     if not isinstance(args, tuple): args = args,
-    if argc_func - 1 != len(args):
-        ValueError("{0} arguments expected in `args`: "
-                   "{1} given".format(argc_func, len(args)))
 
     return __run_levmar(func, p0,  y, args, jacf,
                         bounds, A, b, C, d,
