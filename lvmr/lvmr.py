@@ -12,6 +12,10 @@ from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
 __run_levmar = _lvmr._run_levmar
 
 
+__all__ = ['Data', 'Model', 'Levmar', 'levmar', 'Output',
+           'LMError', 'LMRuntimeError', 'LMUserFuncError', 'LMWarning']
+
+
 class Data(object):
     """The Data class stores the data to fit.
 
