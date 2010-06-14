@@ -3,6 +3,8 @@
 # ----------------------------------------------------------------------
 # Copyright (c) 2010 Takeshi Kanmae
 # ----------------------------------------------------------------------
+import warnings
+from numpy import (array, float64)
 import _lvmr
 from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
                    LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
@@ -20,16 +22,16 @@ class Data(object):
     """
     __slots__ = ['x', 'y', 'wt']
     def __init__(self, x, y, wt=None):
-        x = np.array(x, dtype=np.float64, order='C', copy=False, ndim=1)
-        y = np.array(y, dtype=np.float64, order='C', copy=False, ndim=1)
+        x = array(x, dtype=float64, order='C', copy=False, ndmin=1)
+        y = array(y, dtype=float64, order='C', copy=False, ndmin=1)
         if x.size != y.size:
             raise ValueError("`x` and `y` must have the same size")
         if wt is not None:
-            wt = np.array(x, dtype=np.float64, order='C', copy=False, ndim=1)
+            wt = array(wt, dtype=float64, order='C', copy=False, ndmin=1)
             if wt.size != y.size:
                 raise ValueError("`wt` and `y` must have the same size")
-            warning.warn("Sorry, but weighted least square is NOT "
-                         "implemented yet.", LMWarning)
+            warnings.warn("Sorry, but weighted least square is NOT "
+                          "implemented yet.", LMWarning)
         self.x = x
         self.y = y
         self.wt = wt
