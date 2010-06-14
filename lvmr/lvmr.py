@@ -28,6 +28,8 @@ class Data(object):
             wt = np.array(x, dtype=np.float64, order='C', copy=False, ndim=1)
             if wt.size != y.size:
                 raise ValueError("`wt` and `y` must have the same size")
+            warning.warn("Sorry, but weighted least square is NOT "
+                         "implemented yet.", LMWarning)
         self.x = x
         self.y = y
         self.wt = wt
