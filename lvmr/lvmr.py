@@ -61,9 +61,10 @@ class Model(object):
                 raise TypeError("`jacf` must be callable")
             argc_jacf = jacf.func_code.co_argcount
             if argc_func != argc_jacf:
-                ValueError("`func` and `jacf` must have the same number of arguments")
+                LMUserFuncError("`func` and `jacf` must have the same number "
+                                "of arguments")
         if not isinstance(args, tuple): args = args,
-        if argc_func - 1 != len(extra_args):
+        if argc_func - 2 != len(extra_args):
             ValueError("{0} arguments expected in `extra_args`: "
                        "{1} given".format(argc_func, len(extra_args)))
         self.func = func
@@ -142,7 +143,8 @@ def levmar(func, p0, y, args=(), jacf=None,
             raise TypeError("`jacf` must be callable")
         argc_jacf = jacf.func_code.co_argcount
         if argc_func != argc_jacf:
-            ValueError("`func` and `jacf` must have the same number of arguments")
+            LMUserFuncError("`func` and `jacf` must have the same number "
+                            "of arguments")
     if not isinstance(args, tuple): args = args,
     if argc_func - 1 != len(args):
         ValueError("{0} arguments expected in `args`: "
