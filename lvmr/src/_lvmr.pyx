@@ -12,7 +12,8 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-import numpy as np
+from numpy import (alltrue, array, array_str, empty, float64, finfo,
+                   inf, isfinite, nan)
 
 ctypedef float64_t dtype_t
 
@@ -33,7 +34,7 @@ _LM_STOP_REASONS = {
 
 _LM_STOP_REASONS_WARNED = (3, 4, 5)
 
-__eps = np.finfo(float).eps
+__eps = finfo(float).eps
 ## The stopping threshold for ||J^T e||_inf
 _LM_EPS1 = __eps**(1/2)
 ## The stopping threshold for ||Dp||_2
@@ -216,10 +217,10 @@ class Output(object):
                   "({3:.1f}%)\n".format(i, p, p_stdv, 100*abs(p_stdv/p)))
         buf.write("\n")
         buf.write("Covariance:\n")
-        buf.write(np.array_str(self._covar, precision=4))
+        buf.write(array_str(self._covar, precision=4))
         buf.write("\n\n")
         buf.write("Correlation:\n")
-        buf.write(np.array_str(self._corr, precision=4))
+        buf.write(array_str(self._corr, precision=4))
         buf.write("\n\n")
         buf.write("R2: {0:.5f}".format(self._r2))
 
@@ -281,19 +282,19 @@ cdef object verify_bc(object bounds, int m):
     if len(bounds) != m:
         raise ValueError("`bounds` must be length of {0} "
                          "(given length is {1})".format(m, len(bounds)))
-    lb = np.empty(m)
-    ub = np.empty(m)
+    lb = empty(m)
+    ub = empty(m)
 
     for i, b in enumerate(bounds):
         if b is None:
             lb[i] = -DBL_MAX
             ub[i] =  DBL_MAX
         elif len(b) == 2:
-            if b[0] in (None, np.nan, -np.inf):
+            if b[0] in (None, nan, -inf):
                 lb[i] = -DBL_MAX
             else:
                 lb[i] = float(b[0])
-            if b[1] in (None, np.nan, np.inf):
+            if b[1] in (None, nan, inf):
                 ub[i] = DBL_MAX
             else:
                 ub[i] = float(b[1])
@@ -308,21 +309,21 @@ cdef object verify_lc(object A, object b, int m):
     if m < 2:
         raise ValueError("Linear equation/inequility constraints can not be defined.")
 
-    A = np.array(A, dtype=np.float64, copy=False, order='C', ndmin=2)
+    A = array(A, dtype=float64, copy=False, order='C', ndmin=2)
     if A.shape[1] != m:
         raise ValueError("The shape of the constraint matrix "
                          "must be (kx{0})".format(m))
-    if not np.alltrue(np.isfinite(A)):
+    if not alltrue(isfinite(A)):
         raise ValueError("The constraint matrix should not contain "
                          "non-finite values.")
     ## the number of equations/inequalities
     k = A.size // m
 
-    b = np.array(b, dtype=np.float64, copy=False, order='C', ndmin=1)
+    b = array(b, dtype=float64, copy=False, order='C', ndmin=1)
     if b.size != k:
         raise ValueError("The shape of the RH constraint vector "
                          "must be consistent with ({0}x1)".format(k))
-    if not np.alltrue(np.isfinite(b)):
+    if not alltrue(isfinite(b)):
         raise ValueError("The RH constraint vector should not contain "
                          "non-finite values.")
     return A, b, k
@@ -417,7 +418,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     cdef:
         ## Make a copy of `p0`
         ndarray[dtype_t,ndim=1,mode='c'] p = \
-                np.array(p0, dtype=np.float64, ndmin=1)
+                array(p0, dtype=float64, ndmin=1)
 
         int n = y.shape[0]
         int m = p.shape[0]
