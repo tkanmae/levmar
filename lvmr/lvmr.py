@@ -23,6 +23,11 @@ class Data(object):
     ----------
     x : array_like, shape (n,)
     y : array_like, shape (n,)
+
+    Raises
+    ------
+    ValueError
+        If the sizes of the vectors do not match.
     """
     __slots__ = ['x', 'y', 'wt']
     def __init__(self, x, y, wt=None):
@@ -55,7 +60,12 @@ class Model(object):
         signature must be like `jacf(p, x, args)`.  If this is None, a
         approximated Jacobian will be used.
     extra_args : tuple, optional
-        Extra arguments passed to `func` (and `jacf`) in this tuple.
+        Extra arguments passed to `func` (and `jacf`).
+
+    Raises
+    ------
+    TypeError
+        If the functions are not callable.
     """
     __slot__ = ['func', 'jacf', 'extra_args']
     def __init__(self, func, jacf=None, extra_args=()):
@@ -77,6 +87,20 @@ class Model(object):
 
 class Levmar(object):
     __slots__ = ['data', 'model']
+    """
+    Attributes
+    ----------
+    data : lvmr.Data
+        A instance of `lvmr.Data`
+    model : lvmr.Model
+        A instance of `lvmr.Model`
+
+    Raises
+    ------
+    TypeError
+        If `data` and `model` are not instances of `lvmr.Data` and
+        `lvmr.Model` respectively.
+    """
     def __init__(self, data, model):
         if isinstance(data, _Data):
             self.data = data
