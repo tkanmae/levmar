@@ -71,14 +71,8 @@ class Model(object):
     def __init__(self, func, jacf=None, extra_args=()):
         if not callable(func):
             raise TypeError("`func` must be callable")
-        argc_func = func.func_code.co_argcount
-        if jacf is not None:
-            if not callable(jacf):
-                raise TypeError("`jacf` must be callable")
-            argc_jacf = jacf.func_code.co_argcount
-            if argc_func != argc_jacf:
-                LMUserFuncError("`func` and `jacf` must have the same number "
-                                "of arguments")
+        if jacf is not None and not callable(jacf):
+            raise TypeError("`jacf` must be callable")
         if not isinstance(args, tuple): args = args,
         self.func = func
         self.jacf = jacf
@@ -164,14 +158,8 @@ def levmar(func, p0, y, args=(), jacf=None,
            maxiter=1000, cntdif=False):
     if not callable(func):
         raise TypeError("`func` must be callable")
-    argc_func = func.func_code.co_argcount
-    if jacf is not None:
-        if not callable(jacf):
-            raise TypeError("`jacf` must be callable")
-        argc_jacf = jacf.func_code.co_argcount
-        if argc_func != argc_jacf:
-            LMUserFuncError("`func` and `jacf` must have the same number "
-                            "of arguments")
+    if jacf is not None and not callable(jacf):
+        raise TypeError("`jacf` must be callable")
     if not isinstance(args, tuple): args = args,
 
     return __run_levmar(func, p0,  y, args, jacf,
