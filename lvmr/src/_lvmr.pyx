@@ -64,6 +64,11 @@ cdef class LMFunction:
 
 
 cdef class __LMPyFunctionBase(LMFunction):
+    cdef:
+        object func
+        object jacf
+        object args
+
     @cython.wraparound(False)
     @cython.boundscheck(False)
     cdef void eval_func(self, double *p, double *y, int m, int n):
@@ -91,7 +96,7 @@ cdef class __LMPyFunctionBase(LMFunction):
         memcpy(jacf, py_jacf.data, sizeof(double)*n*m)
 
 
-class LMPyFunction(__LMPyFunctionBase):
+cdef class LMPyFunction(__LMPyFunctionBase):
     def __init__(self, func, p, y, args, jacf=None):
         ## Make sure if `func/jacf`
         ##   1) does not raise exception with given parameters
