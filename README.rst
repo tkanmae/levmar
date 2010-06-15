@@ -1,6 +1,6 @@
-======================================================
+==============================================
 PyLVMR: A Python binding to the levmar library
-======================================================
+==============================================
 
 PyLVMR is a Python_ binding to the levmar_ library.  The levmar_ is GPL'ed
 ANSI C implementation of the Levenberg-Marquardt (LM) optimization algorithm.
@@ -13,38 +13,45 @@ equation, and linear inequality constraints).
 Installation
 ============
 
-Prerequisites
--------------
+0. Prerequisites
+----------------
 
 Building PyLVMR requires the following software installed:
 
-1) Python 2.6, or higher
-2) Cython 0.12, or higher
-3) NumPy 1.3, or higher
-4) [optional] SciPy 0.7, or higher
-5) [optional] nose 0.11, or higher
+1) Python_ >= 2.6
+2) Cython_ >= 0.12
+3) NumPy_ >= 1.3
+4) [optional] SciPy_ >= 0.7
+5) [optional] setuptools_ >= 0.6
+6) [optional] nose_ >= 0.11
 
 
-Installing PyLVMR
+1. Building PyLVMR
+------------------
+
+::
+
+    $ cd lvmr
+    $ cython -v lvmr/lvmr/_lvmr.pyx
+    $ python setup.py build
+
+
+3. Testing PyLVMR
 -----------------
 
-::
-
-    # cd lvmr
-    # cython -v lvmr/lvmr/_lvmr.pyx
-    # python setup.py build
-    # python setup.py install
-
-
-Testing PyLVMR
---------------
-
-To run the tests, you need to have nose_ installed.
+To run the tests, you need to have setuptools_ and nose_ installed.
 
 ::
 
-    >>> import lvmr
-    >>> lvmr.test()
+    $ python setup.py test
+
+
+4. Installing PyLVMR
+--------------------
+
+::
+
+    $ python setup.py install
 
 
 Documentation
@@ -58,7 +65,7 @@ http://www.ics.forth.gr/~lourakis/levmar/.
 Authors
 =======
 
-Takeshi Kanmae
+Takeshi Kanmae <tkanmae@gmail.com>
 
 
 License
@@ -72,7 +79,11 @@ General Public License (GPL).  See the file COPYING.
 
 .. _levmar: http://www.ics.forth.gr/~lourakis/levmar/
 .. _Python: http://www.python.org/
-.. _nose: http://somethingaboutorange.com/mrl/projects/nose 
+.. _Cython: http://www.cython.org/
+.. _NumPy: http://www.scipy.org/
+.. _Scipy: http://www.scipy.org/
+.. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
+.. _nose: http://somethingaboutorange.com/mrl/projects/nose
 
 
 .. # vim: ft=rst
