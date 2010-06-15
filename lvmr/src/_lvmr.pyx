@@ -185,7 +185,8 @@ class Output(object):
     pprint()
         Print a summary of the fit.
     """
-    __slots__ = ('_p', '_p_stdv', '_r2', '_covar', '_corr', '_m', '_n', '_info')
+    __slots__ = ('_p', '_p_stdv', '_r2', '_covar', '_corr', '_m', '_n', '_info',
+                 '_cache')
     def __init__(self, p, p_stdv, r2, covar, corr, m, n, info):
         self._p = p
         self._p_stdv = p_stdv
@@ -195,6 +196,7 @@ class Output(object):
         self._m = m
         self._n = n
         self._info = info
+        self._cache = None
 
         ## These arrays must be read-only.
         self._p.setflags(False)
@@ -206,28 +208,29 @@ class Output(object):
         print(self.__str__())
 
     def __str__(self):
-        buf = StringIO()
+        if self._cache is None:
+            buf = StringIO()
 
-        buf.write("Iteration: {0}\n".format(self.niter))
-        buf.write("Reason: {0}\n\n".format(self.reason))
-        buf.write("Degrees of freedom: {0}\n\n".format(self.ndf))
-        buf.write("Parameters:\n")
-        for i, (p, p_stdv) in enumerate(zip(self._p, self._p_stdv)):
-            buf.write("p[{0}] = {1:<+12.6g} +/- {2:<12.6g} "
-                  "({3:.1f}%)\n".format(i, p, p_stdv, 100*abs(p_stdv/p)))
-        buf.write("\n")
-        buf.write("Covariance:\n")
-        buf.write(array_str(self._covar, precision=4))
-        buf.write("\n\n")
-        buf.write("Correlation:\n")
-        buf.write(array_str(self._corr, precision=4))
-        buf.write("\n\n")
-        buf.write("R2: {0:.5f}".format(self._r2))
+            buf.write("Iteration: {0}\n".format(self.niter))
+            buf.write("Reason: {0}\n\n".format(self.reason))
+            buf.write("Degrees of freedom: {0}\n\n".format(self.ndf))
+            buf.write("Parameters:\n")
+            for i, (p, p_stdv) in enumerate(zip(self._p, self._p_stdv)):
+                buf.write("p[{0}] = {1:<+12.6g} +/- {2:<12.6g} "
+                      "({3:.1f}%)\n".format(i, p, p_stdv, 100*abs(p_stdv/p)))
+            buf.write("\n")
+            buf.write("Covariance:\n")
+            buf.write(array_str(self._covar, precision=4))
+            buf.write("\n\n")
+            buf.write("Correlation:\n")
+            buf.write(array_str(self._corr, precision=4))
+            buf.write("\n\n")
+            buf.write("R2: {0:.5f}".format(self._r2))
 
-        self._buf = buf.getvalue()
-        buf.close()
+            self._cache = buf.getvalue()
+            buf.close()
 
-        return self._buf
+        return self._cache
 
     @property
     def p(self):
