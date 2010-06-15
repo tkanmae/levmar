@@ -18,12 +18,12 @@ Installation
 
 Building PyLVMR requires the following software installed:
 
-1) Python_ >= 2.6
-2) Cython_ >= 0.12
-3) NumPy_ >= 1.3
-4) [optional] SciPy_ >= 0.7
-5) [optional] setuptools_ >= 0.6
-6) [optional] nose_ >= 0.11
+* Python_ >= 2.6
+* Cython_ >= 0.12
+* NumPy_ >= 1.3
+* [optional] SciPy_ >= 0.7
+* [optional] setuptools_ >= 0.6
+* [optional] nose_ >= 0.11
 
 
 1. Building PyLVMR
@@ -53,6 +53,14 @@ To run the tests, you need to have setuptools_ and nose_ installed.
 
     $ python setup.py install
 
+Then, verify a successful installation of PyLVMR:
+
+::
+
+    $ python
+    >>> impport lvmr
+    >>> lvmr.test()
+
 
 Documentation
 =============
@@ -71,10 +79,10 @@ Takeshi Kanmae <tkanmae@gmail.com>
 License
 =======
 
-The MIT license applies to all the files except those in ./levmar-2.5.  All of
-the software in ./levmar-2.5 and only the software therein is copyrighted by
-Manolis Lourakis and is licensed under the terms and conditions of the GNU
-General Public License (GPL).  See the file COPYING.
+The MIT license applies to all the files except those in ``./levmar-2.5``.  All
+of the software in ``./levmar-2.5`` and only the software therein is
+copyrighted by Manolis Lourakis and is licensed under the terms and conditions
+of the GNU General Public License (GPL).  See the file COPYING.
 
 
 .. _levmar: http://www.ics.forth.gr/~lourakis/levmar/
