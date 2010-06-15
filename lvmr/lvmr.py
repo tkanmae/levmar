@@ -99,11 +99,11 @@ class Levmar(object):
         if isinstance(data, _Data):
             self.data = data
         else:
-            raise TypeError("`data` must be a instance of `lvmr._Data`")
+            raise TypeError("`data` must be a instance of `lvmr.Data`")
         if isinstance(model, _Model):
             self.model = model
         else:
-            raise TypeError("`model` must be a instance of `lvmr._Model`")
+            raise TypeError("`model` must be a instance of `lvmr.Model`")
 
     def run(self, p0, bounds=None, A=None, b=None, C=None, d=None,
             mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,

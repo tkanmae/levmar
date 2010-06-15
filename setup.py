@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     setup(configuration = configuration,
           version       = version,
-          author        = 'Takeshi Kaname',
+          author        = 'Takeshi Kanmae',
           author_email  = 'tkanmae@gmail.com',
           keywords      = ['numpy', 'data', 'science'],
           tests_require = ['nose >= 0.11'],
