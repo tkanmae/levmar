@@ -6,6 +6,7 @@
 
 *.pyc
 *.pyo
+*.egg-info/
 
 *.o
 *.a
