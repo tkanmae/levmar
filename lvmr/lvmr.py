@@ -6,10 +6,9 @@
 import warnings
 from numpy import (array, float64)
 import _lvmr
-from _lvmr import (Output, LMError, LMRuntimeError, LMUserFuncError,
-                   LMWarning, _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
-
-__run_levmar = _lvmr._run_levmar
+from _lvmr import (_run_levmar, Output,
+                   LMError, LMRuntimeError, LMUserFuncError, LMWarning,
+                   _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
 
 
 __all__ = ['Data', 'Model', 'Levmar', 'levmar', 'Output',
@@ -73,7 +72,7 @@ class Model(object):
             raise TypeError("`func` must be callable")
         if jacf is not None and not callable(jacf):
             raise TypeError("`jacf` must be callable")
-        if not isinstance(args, tuple): args = args,
+        if not isinstance(extra_args, tuple): extra_args= extra_args,
         self.func = func
         self.jacf = jacf
         self.extra_args = extra_args
@@ -96,11 +95,11 @@ class Levmar(object):
         `lvmr.Model` respectively.
     """
     def __init__(self, data, model):
-        if isinstance(data, _Data):
+        if isinstance(data, Data):
             self.data = data
         else:
             raise TypeError("`data` must be a instance of `lvmr.Data`")
-        if isinstance(model, _Model):
+        if isinstance(model, Model):
             self.model = model
         else:
             raise TypeError("`model` must be a instance of `lvmr.Model`")
@@ -145,8 +144,8 @@ class Levmar(object):
         output : lvmr.Output
             The output of the minimization
         """
-        args = (self.data.x) + self.model.extra_args
-        return __run_levmar(
+        args = (self.data.x,) + self.model.extra_args
+        return _run_levmar(
             self.model.func, p0, self.data.y, args, self.model.jacf,
             bounds, A, b, C, d,
             mu, eps1, eps2, eps3, maxiter, cntdif)
@@ -163,7 +162,7 @@ def levmar(func, p0, y, args=(), jacf=None,
     if not isinstance(args, tuple): args = args,
     y = array(y, dtype=float64, order='C', copy=False, ndmin=1)
 
-    return __run_levmar(func, p0,  y, args, jacf,
+    return _run_levmar(func, p0,  y, args, jacf,
                         bounds, A, b, C, d,
                         mu, eps1, eps2, eps3, maxiter, cntdif)
-levmar.__doc__ = __run_levmar.__doc__
+levmar.__doc__ = _run_levmar.__doc__
