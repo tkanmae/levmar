@@ -32,7 +32,7 @@ Building PyLVMR requires the following software installed:
 ::
 
     $ cd lvmr
-    $ cython -v lvmr/lvmr/_lvmr.pyx
+    $ cython -v lvmr/src/_lvmr.pyx
     $ python setup.py build
 
 
