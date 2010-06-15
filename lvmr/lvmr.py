@@ -161,6 +161,7 @@ def levmar(func, p0, y, args=(), jacf=None,
     if jacf is not None and not callable(jacf):
         raise TypeError("`jacf` must be callable")
     if not isinstance(args, tuple): args = args,
+    y = array(y, dtype=float64, order='C', copy=False, ndmin=1)
 
     return __run_levmar(func, p0,  y, args, jacf,
                         bounds, A, b, C, d,
