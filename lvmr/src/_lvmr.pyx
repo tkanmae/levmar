@@ -45,7 +45,7 @@ _LM_EPS3 = __eps**(1/2)
 class LMError(Exception):
     pass
 
-class LMRuntimeError(LMError):
+class LMRuntimeError(LMError, RuntimeError):
     pass
 
 class LMUserFuncError(LMError):
