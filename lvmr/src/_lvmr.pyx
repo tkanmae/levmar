@@ -232,6 +232,30 @@ cdef class LMInequalConstraint(LMLinEqnLikeConstraint):
     pass
 
 
+cdef class LMWorkSpace:
+    cdef:
+        double* ptr
+        int prev_size
+
+    cdef double* allocate(self, size_t size):
+        if size != self.prev_size:
+            if self.ptr != NULL:
+                free(self.ptr)
+            self.ptr = <double*>malloc(size*sizeof(double))
+            if self.ptr == NULL:
+                PyErr_NoMemory()
+            self.prev_size = size
+        return self.ptr
+
+    def __dealloc__(self):
+        if self.ptr != NULL:
+            free(self.ptr)
+
+
+cdef LMWorkSpace _LMWork = LMWorkSpace()
+
+
+
 class Output(object):
     """A class stores output from `levmar`.
 
@@ -492,6 +516,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         int niter = 0
         double opts[LM_OPTS_SZ]
         double info[LM_INFO_SZ]
+        double* work = NULL
 
         ## Box constraints
         LMBoxConstraint bc
@@ -533,70 +558,79 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 ## Box, linear equations & inequalities constrained minimization
                 bc = LMBoxConstraint(bounds, m)
                 if jacf is not None:
+                    work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_bleic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
+                    work = _LMWork.allocate(
+                        LM_BLEIC_DIF_WORKSZ(m, n, lec.k, lic.k) * sizeof(double))
                     niter = dlevmar_bleic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
             else:
                 ## Linear equation & inequality constraints
                 if jacf is not None:
+                    work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_leic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
+                    work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_leic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
         else:
             if bounds is not None:
                 ## Box & linear inequality constraints
                 bc = LMBoxConstraint(bounds, m)
                 if jacf is not None:
+                    work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_blic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
+                    work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_blic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
             else:
                 ## Linear inequality constraints
                 if jacf is not None:
+                    work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_lic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
+                    work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_lic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, NULL,
+                        maxiter, opts, info, work,
                         <double*>covr.data, <void*>py_func)
     elif A is not None:
         lec = LMLinEqnConstraint(A, b, m)
@@ -604,64 +638,73 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
             ## Box & linear equation constrained minimization
             bc = LMBoxConstraint(bounds, m)
             if jacf is not None:
+                work = _LMWork.allocate(LM_BLEC_DER_WORKSZ(m, n, lec.k))
                 niter = dlevmar_blec_der(
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
                     bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
-                    maxiter, opts, info, NULL,
+                    maxiter, opts, info, work,
                     <double*>covr.data, <void*>py_func)
             else:
+                work = _LMWork.allocate(LM_BLEC_DIF_WORKSZ(m, n, lec.k))
                 niter = dlevmar_blec_dif(
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
                     bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
-                    maxiter, opts, info, NULL,
+                    maxiter, opts, info, work,
                     <double*>covr.data, <void*>py_func)
         else:
             ## Linear equation constrained minimization
             if jacf is not None:
+                work = _LMWork.allocate(LM_LEC_DER_WORKSZ(m, n, lec.k))
                 niter = dlevmar_lec_der(
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
                     lec.mat, lec.vec, lec.k,
-                    maxiter, opts, info, NULL,
+                    maxiter, opts, info, work,
                     <double*>covr.data, <void*>py_func)
             else:
+                work = _LMWork.allocate(LM_LEC_DIF_WORKSZ(m, n, lec.k))
                 niter = dlevmar_lec_dif(
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
                     lec.mat, lec.vec, lec.k,
-                    maxiter, opts, info, NULL,
+                    maxiter, opts, info, work,
                     <double*>covr.data, <void*>py_func)
     elif bounds is not None:
         ## Box-constrained minimization
         bc = LMBoxConstraint(bounds, m)
         if jacf is not None:
+            work = _LMWork.allocate(LM_BC_DER_WORKSZ(m, n))
             niter = dlevmar_bc_der(
                 callback_func, callback_jacf,
                 <double*>p.data, <double*>y.data, m, n,
                 bc.lb, bc.ub,
-                maxiter, opts, info, NULL,
+                maxiter, opts, info, work,
                 <double*>covr.data, <void*>py_func)
         else:
+            work = _LMWork.allocate(
+                LM_BC_DIF_WORKSZ(m, n) * sizeof(double))
             niter = dlevmar_bc_dif(
                 callback_func,
                 <double*>p.data, <double*>y.data, m, n,
                 bc.lb, bc.ub,
-                maxiter, opts, info, NULL,
+                maxiter, opts, info, work,
                 <double*>covr.data, <void*>py_func)
     else:
         ## Unconstrained minimization
         if jacf is not None:
+            work = _LMWork.allocate(LM_DER_WORKSZ(m, n))
             niter = dlevmar_der(
                 callback_func, callback_jacf,
                 <double*>p.data, <double*>y.data, m, n,
-                maxiter, opts, info, NULL, <double*>covr.data, <void*>py_func)
+                maxiter, opts, info, work, <double*>covr.data, <void*>py_func)
         else:
+            work = _LMWork.allocate(LM_DIF_WORKSZ(m, n))
             niter = dlevmar_dif(
                 callback_func,
                 <double*>p.data, <double*>y.data, m, n,
-                maxiter, opts, info, NULL, <double*>covr.data, <void*>py_func)
+                maxiter, opts, info, work, <double*>covr.data, <void*>py_func)
 
     cdef int i, j
     if niter != LM_ERROR:
