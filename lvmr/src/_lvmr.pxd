@@ -3,19 +3,6 @@
 # Copyright (c) 2010 Takeshi Kanmae
 # ----------------------------------------------------------------------
 
-cdef extern from "Python.h":
-    object PyObject_CallObject(object obj, object args)
-    object PySequence_Concat(object obj1, object obj2)
-
-
-cdef extern from "stdlib.h":
-    void *memcpy(void *dest, void *src, size_t n)
-
-
-cdef extern from "float.h":
-    double DBL_MAX
-
-
 cdef extern from "levmar.h":
     enum:
         LM_OPTS_SZ

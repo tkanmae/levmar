@@ -1112,21 +1112,21 @@ class TestLCErrors(TestCase):
                               run_levmar, self.func, self.p0, self.y,
                               args=(self.x,), A=A, b=b, C=A, d=b)
 
-    def test_not_finite(self):
-        invalid_As = [
-            [1,2,np.nan], [1,2,np.inf], [1,2,None], [1,2,3], [1,2,3], [1,2,3]]
-        invalid_bs = [
-            [1], [1], [1], [np.nan], [np.inf], [None]]
-        for A, b in zip(invalid_As, invalid_bs):
-            assert_raises(ValueError,
-                          run_levmar, self.func, self.p0, self.y,
-                          args=(self.x,), A=A, b=b)
-            assert_raises(ValueError,
-                          run_levmar, self.func, self.p0, self.y,
-                          args=(self.x,), C=A, d=b)
-            assert_raises(ValueError,
-                          run_levmar, self.func, self.p0, self.y,
-                          args=(self.x,), A=A, b=b, C=A, d=b)
+    # def test_not_finite(self):
+    #     invalid_As = [
+    #         [1,2,np.nan], [1,2,np.inf], [1,2,None], [1,2,3], [1,2,3], [1,2,3]]
+    #     invalid_bs = [
+    #         [1], [1], [1], [np.nan], [np.inf], [None]]
+    #     for A, b in zip(invalid_As, invalid_bs):
+    #         assert_raises(ValueError,
+    #                       run_levmar, self.func, self.p0, self.y,
+    #                       args=(self.x,), A=A, b=b)
+    #         assert_raises(ValueError,
+    #                       run_levmar, self.func, self.p0, self.y,
+    #                       args=(self.x,), C=A, d=b)
+    #         assert_raises(ValueError,
+    #                       run_levmar, self.func, self.p0, self.y,
+    #                       args=(self.x,), A=A, b=b, C=A, d=b)
 
     def test_not_valid_size(self):
         invalid_As = [

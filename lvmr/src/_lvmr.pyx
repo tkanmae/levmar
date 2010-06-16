@@ -12,8 +12,30 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-from numpy import (alltrue, array, array_str, empty, float64, finfo,
-                   inf, isfinite, nan)
+from numpy import (alltrue, array, array_str, empty, float64, finfo, isfinite)
+
+
+cdef extern from "stdlib.h":
+    void free(void *ptr)
+    void *malloc(size_t size)
+    void *memcpy(void *dest, void *src, size_t n)
+
+
+cdef extern from "float.h":
+    double DBL_MAX
+
+
+cdef extern from "Python.h":
+    object PyObject_CallObject(object obj, object args)
+    object PySequence_Concat(object obj1, object obj2)
+
+    PyObject* PyErr_NoMemory() except NULL
+
+
+cdef extern from "numpy/npy_math.h":
+    double NPY_NAN
+    double NPY_INFINITY
+
 
 ctypedef float64_t dtype_t
 
@@ -64,11 +86,16 @@ cdef class LMFunction:
         raise NotImplementedError()
 
 
-cdef class __LMPyFunctionBase(LMFunction):
+cdef class LMPyFunction(LMFunction):
     cdef:
         object func
         object jacf
         object args
+
+    def __init__(self, func, args, jacf=None):
+        self.func = func
+        self.args = args
+        self.jacf = jacf
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -97,50 +124,112 @@ cdef class __LMPyFunctionBase(LMFunction):
         memcpy(jacf, py_jacf.data, sizeof(double)*n*m)
 
 
-cdef class LMPyFunction(__LMPyFunctionBase):
-    def __init__(self, func, p, y, args, jacf=None):
-        ## Make sure if `func/jacf`
-        ##   1) does not raise exception with given parameters
-        ##   2) returns a valid size array
-        if self._is_func_valid(func, p, y, args):
-            self.func = func
-        if jacf is not None and self._is_jacf_valid(jacf, p, y, args):
-            self.jacf = jacf
-        self.args = args
-
-    def _is_func_valid(self, func, p, y, args):
-        try:
-            args = (p,) + args
-            ret = func(*args)
-        except Exception, e:
-            raise LMUserFuncError(e)
-        if ret.size != y.shape[0]:
-            raise LMUserFuncError(
-                "`{0.__name__}()` returned a invalid size vector: "
-                "{1} expected but {2} given"
-                .format(func, y.shape[0], ret.size))
-        return True
-
-    def _is_jacf_valid(self, jacf, p, y, args):
-        try:
-            args = (p,) + args
-            ret = jacf(*args)
-        except Exception, e:
-            raise LMUserFuncError(e)
-        if ret.size != p.shape[0]*y.shape[0]:
-            raise LMUserFuncError(
-                "`{0.__name__}()` returned a invalid size vector: "
-                "{1} expected but {2} given"
-                .format(jacf, y.shape[0]*p.shape[0], ret.size))
-        return True
-
-
-cdef void callback_func(double *p, double *y, int m, int n, void *ctx):
+cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
     (<LMFunction>ctx).eval_func(p, y, m, n)
 
 
-cdef void callback_jacf(double *p, double *jacf, int m, int n, void *ctx):
+cdef inline void callback_jacf(double *p, double *jacf, int m, int n, void *ctx):
     (<LMFunction>ctx).eval_jacf(p, jacf, m, n)
+
+
+cdef class LMConstraint:
+    pass
+
+
+cdef class LMBoxConstraint(LMConstraint):
+    cdef:
+        double* lb
+        double* ub
+
+    def __init__(self, object bounds, int m):
+        if not isinstance(bounds, (list, tuple)):
+            raise TypeError("`bounds` must be a tuple/list")
+        if len(bounds) != m:
+            raise ValueError("`bounds` must be length of {0} "
+                             "(given length is {1})".format(m, len(bounds)))
+
+        for i, b in enumerate(bounds):
+            if b is None:
+                self.lb[i] = -DBL_MAX
+                self.ub[i] =  DBL_MAX
+            elif len(b) == 2:
+                if b[0] in (None, NPY_NAN, -NPY_INFINITY):
+                    self.lb[i] = -DBL_MAX
+                else:
+                    self.lb[i] = float(b[0])
+                if b[1] in (None, NPY_NAN, NPY_INFINITY):
+                    self.ub[i] = DBL_MAX
+                else:
+                    self.ub[i] = float(b[1])
+            else:
+                raise ValueError("Each in `bounds` must be given as None "
+                                 "or a sequence of 2 floats")
+
+    def __cinit__(self, object bounds, int m):
+        self.lb = <double*>malloc(m*sizeof(double))
+        if self.lb == NULL:
+            PyErr_NoMemory()
+        self.ub = <double*>malloc(m*sizeof(double))
+        if self.ub == NULL:
+            free(self.lb)
+            PyErr_NoMemory()
+
+    def __dealloc__(self):
+        if self.lb != NULL:
+            free(self.lb)
+        if self.ub != NULL:
+            free(self.ub)
+
+
+cdef class LMLinEqnLikeConstraint(LMConstraint):
+    cdef:
+        double* mat
+        double* vec
+        int k
+
+    def __cinit__(self, object mat, object vec, int m):
+        if m < 2:
+            raise ValueError("Linear equation constraints can not be defined.")
+
+        cdef:
+            ndarray[dtype_t,ndim=2,mode='c'] A
+            ndarray[dtype_t,ndim=1,mode='c'] b
+
+        A = array(mat, dtype=float64, copy=False, order='C', ndmin=2)
+        if A.shape[1] != m:
+            raise ValueError("The shape of the constraint matrix "
+                             "must be (kx{0})".format(m))
+        ## the number of equations/inequalities
+        k = A.size // m
+
+        b = array(vec, dtype=float64, copy=False, order='C', ndmin=1)
+        if b.size != k:
+            raise ValueError("The shape of the RH constraint vector "
+                             "must be consistent with ({0}x1)".format(k))
+
+        self.mat = <double*> malloc(m*k*sizeof(double))
+        if self.mat == NULL:
+            PyErr_NoMemory()
+        memcpy(self.mat, A.data, m*k*sizeof(double))
+        self.vec = <double*> malloc(k*sizeof(double))
+        if self.vec == NULL:
+            free(self.mat)
+            PyErr_NoMemory()
+        memcpy(self.vec, b.data, k*sizeof(double))
+        self.k = k
+
+    def __dealloc__(self):
+        if self.mat != NULL:
+            free(self.mat)
+        if self.vec != NULL:
+            free(self.vec)
+
+
+cdef class LMLinEqnConstraint(LMLinEqnLikeConstraint):
+    pass
+
+cdef class LMInequalConstraint(LMLinEqnLikeConstraint):
+    pass
 
 
 class Output(object):
@@ -279,57 +368,32 @@ class Output(object):
         return self._info[3]
 
 
-cdef object verify_bc(object bounds, int m):
-    if not isinstance(bounds, (list, tuple)):
-        raise TypeError("`bounds` must be a tuple/list")
-    if len(bounds) != m:
-        raise ValueError("`bounds` must be length of {0} "
-                         "(given length is {1})".format(m, len(bounds)))
-    lb = empty(m)
-    ub = empty(m)
+cdef int check_funcs(object func, object p, object y, object args,
+                     object jacf=None) except -1:
+    cdef:
+        int n = y.shape[0]
+        int m = p.shape[0]
 
-    for i, b in enumerate(bounds):
-        if b is None:
-            lb[i] = -DBL_MAX
-            ub[i] =  DBL_MAX
-        elif len(b) == 2:
-            if b[0] in (None, nan, -inf):
-                lb[i] = -DBL_MAX
-            else:
-                lb[i] = float(b[0])
-            if b[1] in (None, nan, inf):
-                ub[i] = DBL_MAX
-            else:
-                ub[i] = float(b[1])
-        else:
-            raise ValueError("Each in `bounds` must be given as None "
-                             "or a sequence of 2 floats")
-
-    return lb, ub
-
-
-cdef object verify_lc(object A, object b, int m):
-    if m < 2:
-        raise ValueError("Linear equation/inequility constraints can not be defined.")
-
-    A = array(A, dtype=float64, copy=False, order='C', ndmin=2)
-    if A.shape[1] != m:
-        raise ValueError("The shape of the constraint matrix "
-                         "must be (kx{0})".format(m))
-    if not alltrue(isfinite(A)):
-        raise ValueError("The constraint matrix should not contain "
-                         "non-finite values.")
-    ## the number of equations/inequalities
-    k = A.size // m
-
-    b = array(b, dtype=float64, copy=False, order='C', ndmin=1)
-    if b.size != k:
-        raise ValueError("The shape of the RH constraint vector "
-                         "must be consistent with ({0}x1)".format(k))
-    if not alltrue(isfinite(b)):
-        raise ValueError("The RH constraint vector should not contain "
-                         "non-finite values.")
-    return A, b, k
+    args = (p,) + args
+    try:
+        ret = func(*args)
+    except Exception, e:
+        raise LMUserFuncError(e)
+    if ret.size != n:
+        raise LMUserFuncError(
+            "`{0.__name__}()` returned a invalid size vector: "
+            "{1} expected but {2} given".format(func, n, ret.size))
+    if jacf is not None:
+        try:
+            ret = jacf(*args)
+        except Exception, e:
+            raise LMUserFuncError(e)
+        if ret.size != m*n:
+            raise LMUserFuncError(
+                "`{0.__name__}()` returned a invalid size vector: "
+                "{1} expected but {2} given"
+                .format(jacf, m*n, ret.size))
+    return 1
 
 
 cdef object py_info(double *c_info):
@@ -357,9 +421,9 @@ cdef object py_info(double *c_info):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None,
-                 bounds=None, A=None, b=None, C=None, d=None,
-                 mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
-                 maxiter=1000, cntdif=False):
+                bounds=None, A=None, b=None, C=None, d=None,
+                mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+                maxiter=1000, cntdif=False):
     """
     Parameters
     ----------
@@ -430,15 +494,11 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double info[LM_INFO_SZ]
 
         ## Box constraints
-        ndarray[dtype_t, ndim=1] lb
-        ndarray[dtype_t, ndim=1] ub
-        ## Linear equation/inequility constraints
-        int k1 = 0
-        int k2 = 0
-        ndarray[dtype_t, ndim=2] A_
-        ndarray[dtype_t, ndim=1] b_
-        ndarray[dtype_t, ndim=2] C_
-        ndarray[dtype_t, ndim=1] d_
+        LMBoxConstraint bc
+        ## Linear equation constraints
+        LMLinEqnConstraint lec
+        ## Inequility constraints
+        LMInequalConstraint lic
         ## Output
         npy_intp* dims = [m,m]
         ndarray[dtype_t,ndim=2,mode='c'] covr = \
@@ -450,7 +510,8 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double r2
 
     ## Set `func` (and `jacf`)
-    py_func = LMPyFunction(func, p, y, args, jacf)
+    check_funcs(func, p, y, args, jacf)
+    py_func = LMPyFunction(func, args, jacf)
     ## Set the iteration parameters: `opts` and `maxiter`
     opts[0] = mu
     if eps1 >= 1: raise ValueError("`eps1` must be less than 1.")
@@ -465,28 +526,26 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     maxiter = int(maxiter)
 
     if C is not None:
-        C_, d_, k2 = verify_lc(C, d, m)
+        lic = LMInequalConstraint(C, d, m)
         if A is not None:
-            A_, b_, k1 = verify_lc(A, b, m)
+            lec = LMLinEqnConstraint(A, b, m)
             if bounds is not None:
                 ## Box, linear equations & inequalities constrained minimization
-                lb, ub = verify_bc(bounds, m)
+                bc = LMBoxConstraint(bounds, m)
                 if jacf is not None:
                     niter = dlevmar_bleic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>lb.data, <double*>ub.data,
-                        <double*>A_.data, <double*>b_.data, k1,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        bc.lb, bc.ub,
+                        lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
                 else:
                     niter = dlevmar_bleic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>lb.data, <double*>ub.data,
-                        <double*>A_.data, <double*>b_.data, k1,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        bc.lb, bc.ub,
+                        lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
             else:
@@ -495,36 +554,32 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     niter = dlevmar_leic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>A_.data, <double*>b_.data, k1,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
                 else:
                     niter = dlevmar_leic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>A_.data, <double*>b_.data, k1,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
         else:
             if bounds is not None:
                 ## Box & linear inequality constraints
-                lb, ub = verify_bc(bounds, m)
+                bc = LMBoxConstraint(bounds, m)
                 if jacf is not None:
                     niter = dlevmar_blic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>lb.data, <double*>ub.data,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
                 else:
                     niter = dlevmar_blic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>lb.data, <double*>ub.data,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
             else:
@@ -533,35 +588,33 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     niter = dlevmar_lic_der(
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
                 else:
                     niter = dlevmar_lic_dif(
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
-                        <double*>C_.data, <double*>d_.data, k2,
+                        lic.mat, lic.vec, lic.k,
                         maxiter, opts, info, NULL,
                         <double*>covr.data, <void*>py_func)
     elif A is not None:
-        A_, b_, k1 = verify_lc(A, b, m)
+        lec = LMLinEqnConstraint(A, b, m)
         if bounds is not None:
             ## Box & linear equation constrained minimization
-            lb, ub = verify_bc(bounds, m)
+            bc = LMBoxConstraint(bounds, m)
             if jacf is not None:
                 niter = dlevmar_blec_der(
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
-                    <double*>lb.data, <double*>ub.data,
-                    <double*>A_.data, <double*>b_.data, k1, NULL,
+                    bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
                     maxiter, opts, info, NULL,
                     <double*>covr.data, <void*>py_func)
             else:
                 niter = dlevmar_blec_dif(
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
-                    <double*>lb.data, <double*>ub.data,
-                    <double*>A_.data, <double*>b_.data, k1, NULL,
+                    bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
                     maxiter, opts, info, NULL,
                     <double*>covr.data, <void*>py_func)
         else:
@@ -570,31 +623,31 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 niter = dlevmar_lec_der(
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
-                    <double*>A_.data, <double*>b_.data, k1,
+                    lec.mat, lec.vec, lec.k,
                     maxiter, opts, info, NULL,
                     <double*>covr.data, <void*>py_func)
             else:
                 niter = dlevmar_lec_dif(
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
-                    <double*>A_.data, <double*>b_.data, k1,
+                    lec.mat, lec.vec, lec.k,
                     maxiter, opts, info, NULL,
                     <double*>covr.data, <void*>py_func)
     elif bounds is not None:
         ## Box-constrained minimization
-        lb, ub = verify_bc(bounds, m)
+        bc = LMBoxConstraint(bounds, m)
         if jacf is not None:
             niter = dlevmar_bc_der(
                 callback_func, callback_jacf,
                 <double*>p.data, <double*>y.data, m, n,
-                <double*>lb.data, <double*>ub.data,
+                bc.lb, bc.ub,
                 maxiter, opts, info, NULL,
                 <double*>covr.data, <void*>py_func)
         else:
             niter = dlevmar_bc_dif(
                 callback_func,
                 <double*>p.data, <double*>y.data, m, n,
-                <double*>lb.data, <double*>ub.data,
+                bc.lb, bc.ub,
                 maxiter, opts, info, NULL,
                 <double*>covr.data, <void*>py_func)
     else:
