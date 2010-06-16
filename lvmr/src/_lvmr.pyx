@@ -12,7 +12,7 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-from numpy import (alltrue, array, array_str, empty, float64, finfo, isfinite)
+from numpy import (array_str, finfo)
 
 
 cdef extern from "stdlib.h":
@@ -190,19 +190,18 @@ cdef class LMLinEqnLikeConstraint(LMConstraint):
     def __cinit__(self, object mat, object vec, int m):
         if m < 2:
             raise ValueError("Linear equation constraints can not be defined.")
-
         cdef:
-            ndarray[dtype_t,ndim=2,mode='c'] A
-            ndarray[dtype_t,ndim=1,mode='c'] b
+            ndarray[dtype_t,ndim=2,mode='c'] A = \
+                    PyArray_ContiguousFromAny(mat, NPY_DOUBLE, 2, 2)
+            ndarray[dtype_t,ndim=1,mode='c'] b = \
+                    PyArray_ContiguousFromAny(vec, NPY_DOUBLE, 1, 1)
 
-        A = array(mat, dtype=float64, copy=False, order='C', ndmin=2)
         if A.shape[1] != m:
             raise ValueError("The shape of the constraint matrix "
                              "must be (kx{0})".format(m))
         ## the number of equations/inequalities
         k = A.size // m
 
-        b = array(vec, dtype=float64, copy=False, order='C', ndmin=1)
         if b.size != k:
             raise ValueError("The shape of the RH constraint vector "
                              "must be consistent with ({0}x1)".format(k))
@@ -509,7 +508,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     cdef:
         ## Make a copy of `p0`
         ndarray[dtype_t,ndim=1,mode='c'] p = \
-                array(p0, dtype=float64, ndmin=1)
+                PyArray_ContiguousFromAny(p0, NPY_DOUBLE, 1, 1)
 
         int n = y.shape[0]
         int m = p.shape[0]
