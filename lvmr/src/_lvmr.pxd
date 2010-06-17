@@ -9,10 +9,9 @@ cdef extern from "levmar.h":
         LM_INFO_SZ
         LM_ERROR
 
-    ## TODO: Better way to translate these macros?
-    double LM_INIT_MU     = 1E-03
-    double LM_STOP_THRESH = 1E-17
-    double LM_DIFF_DELTA  = 1E-07
+    double LM_INIT_MU
+    double LM_STOP_THRESH
+    double LM_DIFF_DELTA
 
     ## Work arrays size for `levmar_der` and `levmar_dif` functions.
     ## Should be multiplied by sizeof(double) or sizeof(float) to be
