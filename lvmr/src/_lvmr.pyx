@@ -23,6 +23,7 @@ cdef extern from "stdlib.h":
 
 cdef extern from "float.h":
     double DBL_MAX
+    double DBL_EPSILON
 
 
 cdef extern from "Python.h":
@@ -56,13 +57,12 @@ _LM_STOP_REASONS = {
 
 _LM_STOP_REASONS_WARNED = (3, 4, 5)
 
-__eps = finfo(float).eps
 ## The stopping threshold for ||J^T e||_inf
-_LM_EPS1 = __eps**(1/2)
+_LM_EPS1 = DBL_EPSILON**(1/2)
 ## The stopping threshold for ||Dp||_2
-_LM_EPS2 = __eps**(1/2)
+_LM_EPS2 = DBL_EPSILON**(1/2)
 ## The stopping threshold for ||e||_2
-_LM_EPS3 = __eps**(1/2)
+_LM_EPS3 = DBL_EPSILON**(1/2)
 
 
 class LMError(Exception):
