@@ -195,6 +195,7 @@ cdef class LMLinEqnLikeConstraint(LMConstraint):
                     PyArray_ContiguousFromAny(mat, NPY_DOUBLE, 2, 2)
             ndarray[dtype_t,ndim=1,mode='c'] b = \
                     PyArray_ContiguousFromAny(vec, NPY_DOUBLE, 1, 1)
+            int k
 
         if A.shape[1] != m:
             raise ValueError("The shape of the constraint matrix "
