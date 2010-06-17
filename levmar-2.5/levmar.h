@@ -42,7 +42,7 @@
  * both the single and double precision routines
  */
 #define LM_DBL_PREC  /* comment this if you don't want the double precision routines to be compiled */
-#define LM_SNGL_PREC /* comment this if you don't want the single precision routines to be compiled */
+/* #define LM_SNGL_PREC [> comment this if you don't want the single precision routines to be compiled <] */
 
 /****************** End of configuration options, no changes necessary beyond this point ******************/
 
