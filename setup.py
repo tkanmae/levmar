@@ -56,10 +56,6 @@ def configuration(parent_package='', top_path=None):
 
 
 if __name__ == '__main__':
-    try:
-        import setuptools
-    except ImportError:
-        pass
     from numpy.distutils.core import setup
 
     setup(configuration = configuration,
@@ -67,6 +63,4 @@ if __name__ == '__main__':
           author        = 'Takeshi Kanmae',
           author_email  = 'tkanmae@gmail.com',
           keywords      = ['numpy', 'data', 'science'],
-          tests_require = ['nose >= 0.11'],
-          test_suite    = 'nose.collector',
          )

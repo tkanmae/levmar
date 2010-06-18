@@ -1,8 +1,8 @@
-include *.py
-include *.pyx *.pxd
-recursive-include levmar-2.5
-recursive-include lvmr/tests *.py
-recursive-include lvmr/demos *.py
+recursive-include lvmr/src *.pyx *.pxd
 
+recursive-include levmar-2.5 *
+recursive-include examples *.py
+
+include MANIFEST.in
 include COPYING
-include README.rst
+include README
