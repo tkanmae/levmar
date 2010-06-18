@@ -26,7 +26,8 @@ Building PyLVMR requires the following software installed:
 * [optional] nose (>=0.11)
 
 nose is required to execute tests.  Additionally, some of demo scripts
-in ``./examples`` require Scipy (>=0.7) installed.
+in ``./examples`` require Scipy (>=0.7) or matplotlib (>=0.99)
+installed.
 
 In order to build PyLVMR, simply do
 

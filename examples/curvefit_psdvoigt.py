@@ -21,13 +21,8 @@ specifies that the first parameter has no constraint, the second has -10
 and 3 for the lower and upper bound respectively, the third has only the
 upper bound of 10, and the fourth has to be greater than or equal to 0.
 """
-from math import *
+from math import (log, sqrt, pi,)
 import numpy as np
-try:
-    from matplotlib import pyplot as plt
-    has_mpl = True
-except ImportError:
-    has_mpl = False
 import lvmr
 
 ## If you prefer to reproduce the result, set a seed to the generator.
@@ -67,9 +62,13 @@ print ' Summary '.center(60, '*')
 print ret
 print ''.center(60, '*')
 ## Plot the result
-if has_mpl:
+try:
+    from matplotlib import pyplot as plt
+
     plt.plot(x, y, 'bo')
     plt.plot(x, yt, 'b-', label='true')
     plt.plot(x, psd_voigt(ret.p, x), 'r-', label='fit')
     plt.legend()
     plt.show()
+except ImportError:
+    pass
