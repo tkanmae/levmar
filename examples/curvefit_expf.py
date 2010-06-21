@@ -21,7 +21,7 @@ def jac_expf(p, x):
     jac = np.empty((x.shape[0], 3))
     jac[:,0] = np.exp(-p[1]*x)
     jac[:,1] = -p[0] * x * np.exp(-p[1]*x)
-    jac[:,2] = 1 * np.ones(x.size)
+    jac[:,2] = np.ones(x.size)
     return jac
 
 
@@ -32,7 +32,7 @@ yt = expf(pt, x)
 y = yt + 0.2 * np.random.randn(x.size)
 
 ## Initial estimate
-p0 = [1.0, 0.0, 0.0]
+p0 = [1.0, 0.5, 0.5]
 ## Fitting with analytic Jacobian
 ret = lvmr.levmar(expf, p0, y, jacf=jac_expf, args=(x,))
 

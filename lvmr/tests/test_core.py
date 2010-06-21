@@ -110,7 +110,7 @@ class TestModRos(TestCase):
 
     def setUp(self):
         self.x = np.zeros(3, dtype=np.float64)
-        self.p0 = [-1.2, 1]
+        self.p0 = [-1.2, 2]
         self.pt = [1, 1]
 
     def modros(self, p):
@@ -121,16 +121,16 @@ class TestModRos(TestCase):
         return x
 
     def jac_modros(self, p):
-        jac = np.empty((6,1), dtype=np.float64)
+        jac = np.empty((3,2), dtype=np.float64)
 
-        jac[0] = -20.0*p[0]
-        jac[1] = 10.0
+        jac[0,0] = -20.0*p[0]
+        jac[0,1] = 10.0
 
-        jac[2] = -1.0
-        jac[3] = 0.0
+        jac[1,0] = -1.0
+        jac[1,1] = 0.0
 
-        jac[4] = 0.0
-        jac[5] = 0.0
+        jac[2,0] = 0.0
+        jac[2,1] = 0.0
 
         return jac
 
@@ -272,7 +272,7 @@ class TestHelVal(TestCase):
 
     def setUp(self):
         self.y = np.zeros(3, np.float64)
-        self.p0 = [-1, 0, 0]
+        self.p0 = [-1, 2, 2]
         self.pt = [1, 0, 0]
 
     def helval(self, p):
