@@ -5,7 +5,6 @@
 """
 TODO:
     * Implement a weighted least square method.
-    * Check consistency of `jacf` with `func` using `dlevmar_chkjac()`.
 """
 from __future__ import division
 cimport cython
@@ -85,6 +84,27 @@ cdef class LMFunction:
     cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
         raise NotImplementedError()
 
+    cdef int _check_funcs(self, double *p, int m, int n) except -1:
+        raise NotImplementedError()
+
+    cdef bint _check_jacf(self, double *p, int m, int n):
+        cdef:
+            bint is_jacf_correct = True
+            double *err = NULL
+
+        err = <double*>malloc(n*sizeof(double))
+        if err == NULL:
+            PyErr_NoMemory()
+        dlevmar_chkjac(callback_func, callback_jacf, p, m, n, <void*>self, err)
+
+        cdef int i
+        for i in range(n):
+            if err[i] < 0.5:
+                is_jacf_correct = False
+                break
+        free(err)
+        return is_jacf_correct
+
 
 cdef class LMPyFunction(LMFunction):
     cdef:
@@ -122,6 +142,34 @@ cdef class LMPyFunction(LMFunction):
         py_jacf = PyObject_CallObject(<object>self.jacf, args)
         ## Copy the result to `jacf`
         memcpy(jacf, py_jacf.data, sizeof(double)*n*m)
+
+    cdef int _check_funcs(self, double *p, int m, int n) except -1:
+        cdef object py_p = \
+                PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
+
+        args = (py_p,) + self.args
+        try:
+            ret = self.func(*args)
+        except Exception, e:
+            raise LMUserFuncError(e)
+        if ret.size != n:
+            msg = ("`{0.__name__}()` returned a invalid size vector: "
+                   "{1} expected but {2} given".format(self.func, n, ret.size))
+            raise LMUserFuncError(msg)
+        if self.jacf is not None:
+            try:
+                ret = self.jacf(*args)
+            except Exception, e:
+                raise LMUserFuncError(e)
+            if ret.size != m*n:
+                msg = ("`{0.__name__}()` returned a invalid size vector: "
+                       "{1} expected but {2} given".format(self.jacf, m*n, ret.size))
+                raise LMUserFuncError(msg)
+            if not self._check_jacf(p, m, n):
+                msg = ("`{0.__name__}()` may not be a correct Jacobian of "
+                       "`{1.__name__}()`".format(self.func, self.jacf))
+                warnings.warn(msg, LMWarning)
+        return 1
 
 
 cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
@@ -253,7 +301,6 @@ cdef class LMWorkSpace:
 
 
 cdef LMWorkSpace _LMWork = LMWorkSpace()
-
 
 
 class Output(object):
@@ -392,31 +439,13 @@ class Output(object):
         return self._info[3]
 
 
-cdef int check_funcs(object func, object p, object y, object args,
-                     object jacf=None) except -1:
+cdef int __check_funcs(LMFunction func, object p, object y) except -1:
     cdef:
-        int n = y.shape[0]
-        int m = p.shape[0]
-
-    args = (p,) + args
-    try:
-        ret = func(*args)
-    except Exception, e:
-        raise LMUserFuncError(e)
-    if ret.size != n:
-        raise LMUserFuncError(
-            "`{0.__name__}()` returned a invalid size vector: "
-            "{1} expected but {2} given".format(func, n, ret.size))
-    if jacf is not None:
-        try:
-            ret = jacf(*args)
-        except Exception, e:
-            raise LMUserFuncError(e)
-        if ret.size != m*n:
-            raise LMUserFuncError(
-                "`{0.__name__}()` returned a invalid size vector: "
-                "{1} expected but {2} given"
-                .format(jacf, m*n, ret.size))
+        ndarray[dtype_t,ndim=1,mode='c'] p_ = p
+        ndarray[dtype_t,ndim=1,mode='c'] y_ = y
+        int m = p_.shape[0]
+        int n = y_.shape[0]
+    func._check_funcs(<double*>p_.data, m, n)
     return 1
 
 
@@ -535,8 +564,8 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double r2
 
     ## Set `func` (and `jacf`)
-    check_funcs(func, p, y, args, jacf)
     py_func = LMPyFunction(func, args, jacf)
+    __check_funcs(py_func, p, y)
     ## Set the iteration parameters: `opts` and `maxiter`
     opts[0] = mu
     if eps1 >= 1: raise ValueError("`eps1` must be less than 1.")
