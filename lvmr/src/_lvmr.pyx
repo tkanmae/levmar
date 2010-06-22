@@ -43,8 +43,6 @@ ctypedef float64_t dtype_t
 import_array()
 
 
-_LM_MAXITER = 1000
-
 _LM_STOP_REASONS = {
     1: "Stopped by small gradient J^T e",
     2: "Stop by small Dp",
