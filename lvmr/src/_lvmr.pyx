@@ -494,7 +494,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         A function or method computing the Jacobian of `func`.  It
         takes, at least, one length of m vector and returns a (nxm)
         matrix or a campatible C-contiguous vector.  If this is a None,
-        a approximated Jacobian will be used.
+        an approximated Jacobian will be used.
     bounds : tuple/list, length m
         Box constraints.  Each constraint can be a tuple of two
         floats/Nones or None.  A tuple determines the (inclusive) lower
@@ -509,7 +509,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     d : array_like, shape (k2,), optional
         A right-hand linear *inequality* constraint vector
     mu : float, optional
-        The scale factor for initial \mu
+        The scale factor for initial mu
     eps1 : float, optional
         The stopping threshold for ||J^T e||_inf
     eps2 : float, optional
@@ -529,11 +529,11 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
 
     Notes
     -----
-    * The linear equation constraints are specified as A*p=b where A is
+    * Linear equation constraints are specified as A*p=b where A is
     k1xm matrix and b is k1x1  vector (See comments in
     src/levmar-2.5/lmlec_core.c).
 
-    * The linear *inequality* constraints are defined as C*p>=d where C
+    * Linear *inequality* constraints are defined as C*p>=d where C
     is k2xm matrix and d is k2x1 vector (See comments in
     src/levmar-2.5/lmbleic_core.c).
 

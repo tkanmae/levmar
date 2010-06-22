@@ -59,7 +59,7 @@ class Model(object):
         A function or method computing the Jacobian of `func`.  It
         takes, at least, one length of m vector and returns a (nxm)
         matrix or a campatible C-contiguous vector.  If this is a None,
-        a approximated Jacobian will be used.
+        an approximated Jacobian will be used.
     extra_args : tuple, optional
         Extra arguments passed to `func` (and `jacf`).
 
@@ -86,9 +86,9 @@ class Levmar(object):
     Attributes
     ----------
     data : lvmr.Data
-        A instance of `lvmr.Data`
+        An instance of `lvmr.Data`
     model : lvmr.Model
-        A instance of `lvmr.Model`
+        An instance of `lvmr.Model`
 
     Raises
     ------
@@ -117,9 +117,10 @@ class Levmar(object):
             The initial estimate of the parameters.
         bounds : tuple/list, length m
             Box constraints.  Each constraint can be a tuple of two
-            floats/Nones or None.  A tuple determines the (inclusive) lower
-            and upper bound, and None means no constraint.  If one of two
-            values in a tuple is None, then the bound is semi-definite.
+            floats/Nones or None.  A tuple determines the (inclusive)
+            lower and upper bound, and None means no constraint.  If one
+            of two values in a tuple is None, then the bound is
+            semi-definite.
         A : array_like, shape (k1,m), optional
             A linear equation constraints matrix
         b : array_like, shape (k1,), optional
@@ -146,6 +147,20 @@ class Levmar(object):
         -------
         output : lvmr.Output
             The output of the minimization
+
+        Notes
+        -----
+        * Linear equation constraints are specified as A*p=b where A is
+        k1xm matrix and b is k1x1  vector (See comments in
+        src/levmar-2.5/lmlec_core.c).
+
+        * Linear *inequality* constraints are defined as C*p>=d where C
+        is k2xm matrix and d is k2x1 vector (See comments in
+        src/levmar-2.5/lmbleic_core.c).
+
+        See Also
+        --------
+        levmar.Output
         """
         args = (self.data.x,) + self.model.extra_args
         return _run_levmar(
