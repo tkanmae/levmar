@@ -106,7 +106,7 @@ class Levmar(object):
 
     def run(self, p0, bounds=None, A=None, b=None, C=None, d=None,
             mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
-            maxiter=1000, cntdif=False):
+            maxit=1000, cntdif=False):
         """Run the fitting.
 
         Parameters
@@ -133,7 +133,7 @@ class Levmar(object):
             The stopping threshold for ||Dp||_2
         eps3 : float, optional
             The stopping threshold for ||e||_2
-        maxiter : int, optional
+        maxit : int, optional
             The maximum number of iterations.
         cntdif : {True, False}, optional
             If this is True, the Jacobian is approximated with central
@@ -147,14 +147,13 @@ class Levmar(object):
         args = (self.data.x,) + self.model.extra_args
         return _run_levmar(
             self.model.func, p0, self.data.y, args, self.model.jacf,
-            bounds, A, b, C, d,
-            mu, eps1, eps2, eps3, maxiter, cntdif)
+            bounds, A, b, C, d, mu, eps1, eps2, eps3, maxit, cntdif)
 
 
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
            mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
-           maxiter=1000, cntdif=False):
+           maxit=1000, cntdif=False):
     if not callable(func):
         raise TypeError("`func` must be callable")
     if jacf is not None and not callable(jacf):
@@ -163,6 +162,6 @@ def levmar(func, p0, y, args=(), jacf=None,
     y = array(y, dtype=float64, order='C', copy=False, ndmin=1)
 
     return _run_levmar(func, p0,  y, args, jacf,
-                        bounds, A, b, C, d,
-                        mu, eps1, eps2, eps3, maxiter, cntdif)
+                       bounds, A, b, C, d,
+                       mu, eps1, eps2, eps3, maxit, cntdif)
 levmar.__doc__ = _run_levmar.__doc__

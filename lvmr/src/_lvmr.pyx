@@ -48,8 +48,8 @@ _LM_MAXITER = 1000
 _LM_STOP_REASONS = {
     1: "Stopped by small gradient J^T e",
     2: "Stop by small Dp",
-    3: "Stop by `maxiter`",
-    4: "Singular matrix.  Restart from current `p` with increased `mu`",
+    3: "Stop by `maxit`",
+    4: "Singular matrix.  Restart from current `p` with increased mu",
     5: "No further error reduction is possible. Restart with increased mu",
     6: "Stopped by small ||e||_2",
 }
@@ -476,7 +476,7 @@ cdef object py_info(double *c_info):
 def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None,
                 bounds=None, A=None, b=None, C=None, d=None,
                 mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
-                maxiter=1000, cntdif=False):
+                maxit=1000, cntdif=False):
     """
     Parameters
     ----------
@@ -510,7 +510,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         The stopping threshold for ||Dp||_2
     eps3 : float, optional
         The stopping threshold for ||e||_2
-    maxiter : int, optional
+    maxit : int, optional
         The maximum number of iterations.
     cntdif : {True, False}, optional
         If this is True, the Jacobian is approximated with central
@@ -566,7 +566,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     ## Set `func` (and `jacf`)
     py_func = LMPyFunction(func, args, jacf)
     __check_funcs(py_func, p, y)
-    ## Set the iteration parameters: `opts` and `maxiter`
+    ## Set the iteration parameters: `opts` and `maxit`
     opts[0] = mu
     if eps1 >= 1: raise ValueError("`eps1` must be less than 1.")
     opts[1] = eps1
@@ -575,9 +575,9 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     if eps2 >= 1: raise ValueError("`eps3` must be less than 1.")
     opts[3] = eps3
     opts[4] = LM_DIFF_DELTA if cntdif else -LM_DIFF_DELTA
-    if maxiter <= 0:
-        raise ValueError("`maxiter` must be a positive.")
-    maxiter = int(maxiter)
+    if maxit <= 0:
+        raise ValueError("`maxit` must be a positive.")
+    maxit = int(maxit)
 
     if C is not None:
         lic = LMInequalConstraint(C, d, m)
@@ -593,7 +593,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
                     work = _LMWork.allocate(
@@ -603,7 +603,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
             else:
                 ## Linear equation & inequality constraints
@@ -613,7 +613,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
                     work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, lec.k, lic.k))
@@ -621,7 +621,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         lec.mat, lec.vec, lec.k, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
         else:
             if bounds is not None:
@@ -633,7 +633,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
                     work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, 0, lic.k))
@@ -641,7 +641,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         bc.lb, bc.ub, lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
             else:
                 ## Linear inequality constraints
@@ -651,7 +651,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func, callback_jacf,
                         <double*>p.data, <double*>y.data, m, n,
                         lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
                 else:
                     work = _LMWork.allocate(LM_BLEIC_DIF_WORKSZ(m, n, 0, lic.k))
@@ -659,7 +659,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         callback_func,
                         <double*>p.data, <double*>y.data, m, n,
                         lic.mat, lic.vec, lic.k,
-                        maxiter, opts, info, work,
+                        maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
     elif A is not None:
         lec = LMLinEqnConstraint(A, b, m)
@@ -672,7 +672,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
                     bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
-                    maxiter, opts, info, work,
+                    maxit, opts, info, work,
                     <double*>covr.data, <void*>py_func)
             else:
                 work = _LMWork.allocate(LM_BLEC_DIF_WORKSZ(m, n, lec.k))
@@ -680,7 +680,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
                     bc.lb, bc.ub, lec.mat, lec.vec, lec.k, NULL,
-                    maxiter, opts, info, work,
+                    maxit, opts, info, work,
                     <double*>covr.data, <void*>py_func)
         else:
             ## Linear equation constrained minimization
@@ -690,7 +690,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     callback_func, callback_jacf,
                     <double*>p.data, <double*>y.data, m, n,
                     lec.mat, lec.vec, lec.k,
-                    maxiter, opts, info, work,
+                    maxit, opts, info, work,
                     <double*>covr.data, <void*>py_func)
             else:
                 work = _LMWork.allocate(LM_LEC_DIF_WORKSZ(m, n, lec.k))
@@ -698,7 +698,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     callback_func,
                     <double*>p.data, <double*>y.data, m, n,
                     lec.mat, lec.vec, lec.k,
-                    maxiter, opts, info, work,
+                    maxit, opts, info, work,
                     <double*>covr.data, <void*>py_func)
     elif bounds is not None:
         ## Box-constrained minimization
@@ -709,7 +709,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 callback_func, callback_jacf,
                 <double*>p.data, <double*>y.data, m, n,
                 bc.lb, bc.ub,
-                maxiter, opts, info, work,
+                maxit, opts, info, work,
                 <double*>covr.data, <void*>py_func)
         else:
             work = _LMWork.allocate(
@@ -718,7 +718,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 callback_func,
                 <double*>p.data, <double*>y.data, m, n,
                 bc.lb, bc.ub,
-                maxiter, opts, info, work,
+                maxit, opts, info, work,
                 <double*>covr.data, <void*>py_func)
     else:
         ## Unconstrained minimization
@@ -727,13 +727,13 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
             niter = dlevmar_der(
                 callback_func, callback_jacf,
                 <double*>p.data, <double*>y.data, m, n,
-                maxiter, opts, info, work, <double*>covr.data, <void*>py_func)
+                maxit, opts, info, work, <double*>covr.data, <void*>py_func)
         else:
             work = _LMWork.allocate(LM_DIF_WORKSZ(m, n))
             niter = dlevmar_dif(
                 callback_func,
                 <double*>p.data, <double*>y.data, m, n,
-                maxiter, opts, info, work, <double*>covr.data, <void*>py_func)
+                maxit, opts, info, work, <double*>covr.data, <void*>py_func)
 
     cdef int i, j
     if niter != LM_ERROR:
