@@ -167,7 +167,7 @@ cdef class LMPyFunction(LMFunction):
                 raise LMUserFuncError(msg)
             if not self._check_jacf(p, m, n):
                 msg = ("`{0.__name__}()` may not be a correct Jacobian of "
-                       "`{1.__name__}()`".format(self.func, self.jacf))
+                       "`{1.__name__}()`".format(self.jacf, self.func))
                 warnings.warn(msg, LMWarning)
         return 1
 
