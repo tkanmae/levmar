@@ -8,12 +8,13 @@
 Curve fitting with a psuedo-Voigt function.
 
 
-A keyword parameter `bounds` is for box constraints lb[i]<=p[i]<=ub[i].
-`bounds` must be a tuple/list, and its length must be the same as the
-parameters.  A constraint for a parameter consists of a tuples of two
-floats/Nones or Nones.  A tuple determines the lower and upper bound,
-and a None means no constraint.  If one of two values in a tuple is
-None, then the bound is semi-definite.  For example,
+A keyword parameter `bounds` passed to  `lvmr.levmar()` specifies box
+constraints lb[i]<=p[i]<=ub[i].  `bounds` must be a tuple/list, and its
+length must be the same as the parameters.  A constraint for a parameter
+consists of a tuples of two floats/Nones or None.  A tuple determines
+the (inclusive) lower and upper bound, and None means no constraint.  If
+one of two values in a tuple is None, then the bound is semi-definite.
+For example,
 
     >>> bounds = [None, (-10, 3), (None, 10), (0, None)]
 

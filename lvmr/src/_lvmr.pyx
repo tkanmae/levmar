@@ -210,8 +210,8 @@ cdef class LMBoxConstraint(LMConstraint):
                 else:
                     self.ub[i] = float(b[1])
             else:
-                raise ValueError("Each in `bounds` must be given as None "
-                                 "or a sequence of 2 floats")
+                raise ValueError("A component of `bounds` must be as "
+                                 "a None or a sequence of 2 floats/Nones")
 
     def __cinit__(self, object bounds, int m):
         self.lb = <double*>malloc(m*sizeof(double))
@@ -300,6 +300,9 @@ cdef class LMWorkSpace:
             free(self.ptr)
 
 
+## This global variable holds a working array used internally in the
+## levmar library.  The necessarily size of the array depends on
+## specification of problems.
 cdef LMWorkSpace _LMWork = LMWorkSpace()
 
 
@@ -481,19 +484,24 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     Parameters
     ----------
     func : callable
-        A function or method taking, at least, one length of n vector
-        and returning a length of m vector.
+        A function or method taking, at least, one length of m vector
+        and returning a length of n vector.
+    y : array_like, shape (n,)
+        The dependent data, or the observation.
     p0 : array_like, shape (m,)
         The initial estimate of the parameters.
     args : tuple, optional
-        Extra arguments passed to `func` (and `jacf`) in this tuple.
+        Extra arguments passed to `func` (and `jacf`).
     jacf : callable, optional
-        A function or method to compute the Jacobian of `func`.  If this
-        is None, a approximated Jacobian will be used.
+        A function or method computing the Jacobian of `func`.  It
+        takes, at least, one length of m vector and returns a (nxm)
+        matrix or a campatible C-contiguous vector.  If this is a None,
+        a approximated Jacobian will be used.
     bounds : tuple/list, length m
-        Box-constraints. Each constraint can be a None or a tuple of two
-        float/Nones.  None in the first case means no constraint, and
-        None in the second case means -Inf/+Inf.
+        Box constraints.  Each constraint can be a tuple of two
+        floats/Nones or None.  A tuple determines the (inclusive) lower
+        and upper bound, and None means no constraint.  If one of two
+        values in a tuple is None, then the bound is semi-definite.
     A : array_like, shape (k1,m), optional
         A linear equation constraints matrix
     b : array_like, shape (k1,), optional
@@ -523,11 +531,11 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
 
     Notes
     -----
-    * The linear equation constraints are specified as A*p=b where A
-    is k1xm matrix and b is k1x1  vector (See comments in
+    * The linear equation constraints are specified as A*p=b where A is
+    k1xm matrix and b is k1x1  vector (See comments in
     src/levmar-2.5/lmlec_core.c).
 
-    * The linear inequality constraints are defined as C*p>=d where C
+    * The linear *inequality* constraints are defined as C*p>=d where C
     is k2xm matrix and d is k2x1 vector (See comments in
     src/levmar-2.5/lmbleic_core.c).
 
@@ -748,8 +756,8 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
 
     if niter == LM_ERROR:
         if <int>info[6] == 7:
-            raise LMUserFuncError("Stopped by invalid values (NaN or Inf) "
-                                  "returned by `func`")
+            raise LMUserFuncError(
+                "Stopped by invalid values (NaN or Inf) returned by `func`")
         else:
             raise LMRuntimeError
 

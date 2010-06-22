@@ -21,7 +21,9 @@ class Data(object):
     Attributes
     ----------
     x : array_like, shape (n,)
+        The independent data.
     y : array_like, shape (n,)
+        The dependent data, or the observation.
 
     Raises
     ------
@@ -51,13 +53,13 @@ class Model(object):
     Attributes
     ----------
     func : callable
-        A function or method taking, at least, one length of n vector
-        and returning a length of m vector.  The signature must be like
-        `func(p, x, args) -> y`.
+        A function or method taking, at least, one length of m vector
+        and returning a length of n vector.
     jacf : callable, optional
-        A function or method to compute the Jacobian of `func`.  The
-        signature must be like `jacf(p, x, args)`.  If this is None, a
-        approximated Jacobian will be used.
+        A function or method computing the Jacobian of `func`.  It
+        takes, at least, one length of m vector and returns a (nxm)
+        matrix or a campatible C-contiguous vector.  If this is a None,
+        a approximated Jacobian will be used.
     extra_args : tuple, optional
         Extra arguments passed to `func` (and `jacf`).
 
@@ -114,17 +116,18 @@ class Levmar(object):
         p0 : array_like, shape (m,)
             The initial estimate of the parameters.
         bounds : tuple/list, length m
-            Box-constraints. Each constraint can be a None or a tuple of two
-            float/Nones.  None in the first case means no constraint, and
-            None in the second case means -Inf/+Inf.
+            Box constraints.  Each constraint can be a tuple of two
+            floats/Nones or None.  A tuple determines the (inclusive) lower
+            and upper bound, and None means no constraint.  If one of two
+            values in a tuple is None, then the bound is semi-definite.
         A : array_like, shape (k1,m), optional
             A linear equation constraints matrix
         b : array_like, shape (k1,), optional
             A right-hand equation linear constraint vector
         C : array_like, shape (k2,m), optional
-            A linear inequality constraints matrix
+            A linear *inequality* constraints matrix
         d : array_like, shape (k2,), optional
-            A right-hand linear inequality constraint vector
+            A right-hand linear *inequality* constraint vector
         mu : float, optional
             The scale factor for initial \mu
         eps1 : float, optional
@@ -161,7 +164,6 @@ def levmar(func, p0, y, args=(), jacf=None,
     if not isinstance(args, tuple): args = args,
     y = array(y, dtype=float64, order='C', copy=False, ndmin=1)
 
-    return _run_levmar(func, p0,  y, args, jacf,
-                       bounds, A, b, C, d,
-                       mu, eps1, eps2, eps3, maxit, cntdif)
+    return _run_levmar(func, p0,  y, args, jacf, bounds,
+                       A, b, C, d, mu, eps1, eps2, eps3, maxit, cntdif)
 levmar.__doc__ = _run_levmar.__doc__
