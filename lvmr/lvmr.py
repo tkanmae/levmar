@@ -8,7 +8,7 @@ from numpy import (array, float64)
 import _lvmr
 from _lvmr import (_run_levmar, Output,
                    LMError, LMRuntimeError, LMUserFuncError, LMWarning,
-                   _LM_MAXITER, _LM_EPS1, _LM_EPS2, _LM_EPS3)
+                   _LM_EPS1, _LM_EPS2, _LM_EPS3)
 
 
 __all__ = ['Data', 'Model', 'Levmar', 'levmar', 'Output',
