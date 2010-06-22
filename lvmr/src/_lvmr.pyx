@@ -492,9 +492,9 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         Extra arguments passed to `func` (and `jacf`).
     jacf : callable, optional
         A function or method computing the Jacobian of `func`.  It
-        takes, at least, one length of m vector and returns a (nxm)
-        matrix or a campatible C-contiguous vector.  If this is a None,
-        an approximated Jacobian will be used.
+        takes, at least, one length of m vector and returns the (nxm)
+        Jacobian matrix or a campatible C-contiguous vector.  If it is
+        None, the Jacobian will be approximated.
     bounds : tuple/list, length m
         Box constraints.  Each constraint can be a tuple of two
         floats/Nones or None.  A tuple determines the (inclusive) lower

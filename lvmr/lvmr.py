@@ -57,9 +57,9 @@ class Model(object):
         and returning a length of n vector.
     jacf : callable, optional
         A function or method computing the Jacobian of `func`.  It
-        takes, at least, one length of m vector and returns a (nxm)
-        matrix or a campatible C-contiguous vector.  If this is a None,
-        an approximated Jacobian will be used.
+        takes, at least, one length of m vector and returns the (nxm)
+        Jacobian matrix or a campatible C-contiguous vector.  If it is
+        None, the Jacobian will be approximated.
     extra_args : tuple, optional
         Extra arguments passed to `func` (and `jacf`).
 

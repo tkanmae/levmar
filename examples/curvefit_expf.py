@@ -6,6 +6,12 @@
 """Demonstration of use of analytic Jacobian.
 
 Curve fitting with a exponential function.
+
+A keyword parameter `jacf` passed to `lvmr.levmar()` specifies the
+Jacobian of `func`.  `jacf` must be a function or method computing the
+Jacobian.  It takes, at least, one length of m vector and returns the
+(nxm) Jacobian matrix or a compatible C-contiguous vector.  If `jacf` is
+None, then the Jacobian will be approximated.
 """
 import numpy as np
 import lvmr
