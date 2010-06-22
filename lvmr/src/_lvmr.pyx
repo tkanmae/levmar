@@ -75,7 +75,7 @@ class LMWarning(UserWarning):
     pass
 
 
-cdef class LMFunction:
+cdef class _LMFunction:
     cdef void eval_func(self, double *p, double *x, int m, int n):
         raise NotImplementedError()
 
@@ -104,7 +104,7 @@ cdef class LMFunction:
         return is_jacf_correct
 
 
-cdef class LMPyFunction(LMFunction):
+cdef class _LMPyFunction(_LMFunction):
     """
     Parameters
     ----------
@@ -193,11 +193,11 @@ cdef class LMPyFunction(LMFunction):
 
 
 cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
-    (<LMFunction>ctx).eval_func(p, y, m, n)
+    (<_LMFunction>ctx).eval_func(p, y, m, n)
 
 
 cdef inline void callback_jacf(double *p, double *jacf, int m, int n, void *ctx):
-    (<LMFunction>ctx).eval_jacf(p, jacf, m, n)
+    (<_LMFunction>ctx).eval_jacf(p, jacf, m, n)
 
 
 cdef class _LMConstraints:
@@ -348,7 +348,7 @@ cdef class _LMWorkSpace:
 cdef _LMWorkSpace _LMWork = _LMWorkSpace()
 
 
-class Output(object):
+cdef class Output:
     """A class stores output from the levmar library.
 
     Attributes
@@ -390,9 +390,12 @@ class Output(object):
     pprint()
         Print a summary of the fit.
     """
-    __slots__ = ('_p', '_p_stdv', '_r2', '_covar', '_corr', '_m', '_n', '_info',
-                 '_cache')
-    def __init__(self, p, p_stdv, r2, covar, corr, m, n, info):
+    cdef:
+        object _p, _p_stdv, _covar, _corr, _info, _cache
+        double _r2
+        int _m, _n
+
+    def __init__(self, p, p_stdv, double r2, covar, corr, int m, int n, info):
         self._p = p
         self._p_stdv = p_stdv
         self._r2 = r2
@@ -437,61 +440,52 @@ class Output(object):
 
         return self._cache
 
-    @property
-    def p(self):
-        return self._p
+    property p:
+        def __get__(self):
+            return self._p
 
-    @property
-    def p_stdv(self):
-        return self._p_stdv
+    property p_stdv:
+        def __get__(self):
+            return self._p_stdv
 
-    @property
-    def r2(self):
-        return self._r2
+    property r2:
+        def __get__(self):
+            return self._r2
 
-    @property
-    def covar(self):
-        return self._covar
+    property covar:
+        def __get__(self):
+            return self._covar
 
-    @property
-    def corr(self):
-        return self._corr
+    property corr:
+        def __get__(self):
+            return self._corr
 
-    @property
-    def m(self):
-        return self._m
+    property m:
+        def __get__(self):
+            return self._m
 
-    @property
-    def n(self):
-        return self._n
+    property n:
+        def __get__(self):
+            return self._n
 
-    @property
-    def info(self):
-        return self._info
+    property info:
+        def __get__(self):
+            return self._info
 
-    @property
-    def ndf(self):
-        """The degrees of freedom"""
-        return self._n - self._m
+    property ndf:
+        def __get__(self):
+            """The degrees of freedom"""
+            return self._n - self._m
 
-    @property
-    def niter(self):
-        """The number of the iterations"""
-        return self._info[2]
+    property niter:
+        def __get__(self):
+            """The number of the iterations"""
+            return self._info[2]
 
-    @property
-    def reason(self):
-        return self._info[3]
+    property reason:
+        def __get__(self):
+            return self._info[3]
 
-
-cdef int __check_funcs(LMFunction func, object p, object y) except -1:
-    cdef:
-        ndarray[dtype_t,ndim=1,mode='c'] p_ = p
-        ndarray[dtype_t,ndim=1,mode='c'] y_ = y
-        int m = p_.shape[0]
-        int n = y_.shape[0]
-    func._check_funcs(<double*>p_.data, m, n)
-    return 1
 
 
 cdef object py_info(double *c_info):
@@ -597,6 +591,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double info[LM_INFO_SZ]
         double* work = NULL
 
+        _LMPyFunction py_func
         ## Box constraints
         _LMBoxConstraints bc
         ## Linear equation constraints
@@ -613,9 +608,9 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 PyArray_ZEROS(1, <npy_intp*>&m, NPY_DOUBLE, 0)
         double r2
 
-    ## Set `func` (and `jacf`)
-    py_func = LMPyFunction(func, args, jacf)
-    __check_funcs(py_func, p, y)
+    ## Set the functions and their extra arguments, and verify them.
+    py_func = _LMPyFunction(func, args, jacf)
+    py_func._check_funcs(<double*>p.data, m, n)
     ## Set the iteration parameters: `opts` and `maxit`
     opts[0] = mu
     if eps1 >= 1: raise ValueError("`eps1` must be less than 1.")
