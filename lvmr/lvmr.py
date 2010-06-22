@@ -18,12 +18,17 @@ __all__ = ['Data', 'Model', 'Levmar', 'levmar', 'Output',
 class Data(object):
     """The Data class stores the data to fit.
 
-    Attributes
+    Parameters
     ----------
     x : array_like, shape (n,)
         The independent data.
     y : array_like, shape (n,)
         The dependent data, or the observation.
+
+    Attributes
+    ----------
+    x : ndarray, shape (n,)
+    y : ndarray, shape (n,)
 
     Raises
     ------
@@ -50,11 +55,11 @@ class Data(object):
 class Model(object):
     """The Model class stores information about the model.
 
-    Attributes
+    Parameters
     ----------
     func : callable
-        A function or method taking, at least, one length of m vector
-        and returning a length of n vector.
+        A function or method computing the model function.  It takes, at
+        least, one length of m vector and returns a length of n vector.
     jacf : callable, optional
         A function or method computing the Jacobian of `func`.  It
         takes, at least, one length of m vector and returns the (nxm)
@@ -62,6 +67,12 @@ class Model(object):
         None, the Jacobian will be approximated.
     extra_args : tuple, optional
         Extra arguments passed to `func` (and `jacf`).
+
+    Attributes
+    ----------
+    func : callable
+    jacf : callable or None
+    extra_args : tuple
 
     Raises
     ------
@@ -83,12 +94,18 @@ class Model(object):
 class Levmar(object):
     __slots__ = ['data', 'model']
     """
-    Attributes
+    Parameters
     ----------
     data : lvmr.Data
         An instance of `lvmr.Data`
     model : lvmr.Model
         An instance of `lvmr.Model`
+
+    Attributes
+    ----------
+    data : lvmr.Data
+    model : lvmr.Model
+
 
     Raises
     ------

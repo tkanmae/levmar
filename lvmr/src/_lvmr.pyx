@@ -105,6 +105,26 @@ cdef class LMFunction:
 
 
 cdef class LMPyFunction(LMFunction):
+    """
+    Parameters
+    ----------
+    func : callable
+        A function or method taking, at least, one length of m vector
+        and returning a length of n vector.
+    args : tuple
+        Extra arguments passed to `func` (and `jacf`).
+    jacf : callable, optional
+        A function or method computing the Jacobian of `func`.  It
+        takes, at least, one length of m vector and returns the (nxm)
+        Jacobian matrix or a campatible C-contiguous vector.  If it is
+        None, the Jacobian will be approximated.
+
+    Attributes
+    ----------
+    func : callable
+    args : tuple
+    jacf : callable or None
+    """
     cdef:
         object func
         object jacf
@@ -139,8 +159,10 @@ cdef class LMPyFunction(LMFunction):
         args = PySequence_Concat((py_p,), self.args)
         py_jacf = PyObject_CallObject(<object>self.jacf, args)
         ## Copy the result to `jacf`
-        memcpy(jacf, py_jacf.data, sizeof(double)*n*m)
+        memcpy(jacf, py_jacf.data, m*n*sizeof(double))
 
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
     cdef int _check_funcs(self, double *p, int m, int n) except -1:
         cdef object py_p = \
                 PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
@@ -178,11 +200,31 @@ cdef inline void callback_jacf(double *p, double *jacf, int m, int n, void *ctx)
     (<LMFunction>ctx).eval_jacf(p, jacf, m, n)
 
 
-cdef class LMConstraint:
+cdef class _LMConstraints:
+    "A base class for the constraints"
     pass
 
 
-cdef class LMBoxConstraint(LMConstraint):
+cdef class _LMBoxConstraints(_LMConstraints):
+    """Box constraints class
+
+    Parameters
+    ----------
+    bounds : tuple/list, length m
+        Box constraints.  Each constraint can be a tuple of two
+        floats/Nones or None.  A tuple determines the (inclusive) lower
+        and upper bound, and None means no constraint.  If one of two
+        values in a tuple is None, then the bound is semi-definite.
+    m : int
+        The size of parameters
+
+    Attributes
+    ----------
+    lb : double*, length m
+        The (inclusive) lower bounds
+    ub : double*, length m
+        The (inclusive) upper bounds
+    """
     cdef:
         double* lb
         double* ub
@@ -208,8 +250,8 @@ cdef class LMBoxConstraint(LMConstraint):
                 else:
                     self.ub[i] = float(b[1])
             else:
-                raise ValueError("A component of `bounds` must be as "
-                                 "a None or a sequence of 2 floats/Nones")
+                raise ValueError("A component of `bounds` must be "
+                                 "a None or a tuple of 2 floats/Nones")
 
     def __cinit__(self, object bounds, int m):
         self.lb = <double*>malloc(m*sizeof(double))
@@ -227,7 +269,7 @@ cdef class LMBoxConstraint(LMConstraint):
             free(self.ub)
 
 
-cdef class LMLinEqnLikeConstraint(LMConstraint):
+cdef class _LMLinEqnLikeConstraints(_LMConstraints):
     cdef:
         double* mat
         double* vec
@@ -271,14 +313,16 @@ cdef class LMLinEqnLikeConstraint(LMConstraint):
             free(self.vec)
 
 
-cdef class LMLinEqnConstraint(LMLinEqnLikeConstraint):
+cdef class _LMLinEqnConstraints(_LMLinEqnLikeConstraints):
     pass
 
-cdef class LMInequalConstraint(LMLinEqnLikeConstraint):
+cdef class _LMInequalConstraints(_LMLinEqnLikeConstraints):
     pass
 
 
-cdef class LMWorkSpace:
+cdef class _LMWorkSpace:
+    """A class managing the working array used internally in the levmar
+    libraray."""
     cdef:
         double* ptr
         int prev_size
@@ -301,11 +345,11 @@ cdef class LMWorkSpace:
 ## This global variable holds a working array used internally in the
 ## levmar library.  The necessarily size of the array depends on
 ## specification of problems.
-cdef LMWorkSpace _LMWork = LMWorkSpace()
+cdef _LMWorkSpace _LMWork = _LMWorkSpace()
 
 
 class Output(object):
-    """A class stores output from `levmar`.
+    """A class stores output from the levmar library.
 
     Attributes
     ----------
@@ -482,8 +526,8 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     Parameters
     ----------
     func : callable
-        A function or method taking, at least, one length of m vector
-        and returning a length of n vector.
+        A function or method computing the model function.  It takes, at
+        least, one length of m vector and returns a length of n vector.
     y : array_like, shape (n,)
         The dependent data, or the observation.
     p0 : array_like, shape (m,)
@@ -554,11 +598,11 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double* work = NULL
 
         ## Box constraints
-        LMBoxConstraint bc
+        _LMBoxConstraints bc
         ## Linear equation constraints
-        LMLinEqnConstraint lec
+        _LMLinEqnConstraints lec
         ## Inequility constraints
-        LMInequalConstraint lic
+        _LMInequalConstraints lic
         ## Output
         npy_intp* dims = [m,m]
         ndarray[dtype_t,ndim=2,mode='c'] covr = \
@@ -586,12 +630,12 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     maxit = int(maxit)
 
     if C is not None:
-        lic = LMInequalConstraint(C, d, m)
+        lic = _LMInequalConstraints(C, d, m)
         if A is not None:
-            lec = LMLinEqnConstraint(A, b, m)
+            lec = _LMLinEqnConstraints(A, b, m)
             if bounds is not None:
                 ## Box, linear equations & inequalities constrained minimization
-                bc = LMBoxConstraint(bounds, m)
+                bc = _LMBoxConstraints(bounds, m)
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_bleic_der(
@@ -632,7 +676,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         else:
             if bounds is not None:
                 ## Box & linear inequality constraints
-                bc = LMBoxConstraint(bounds, m)
+                bc = _LMBoxConstraints(bounds, m)
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_blic_der(
@@ -668,10 +712,10 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                         maxit, opts, info, work,
                         <double*>covr.data, <void*>py_func)
     elif A is not None:
-        lec = LMLinEqnConstraint(A, b, m)
+        lec = _LMLinEqnConstraints(A, b, m)
         if bounds is not None:
             ## Box & linear equation constrained minimization
-            bc = LMBoxConstraint(bounds, m)
+            bc = _LMBoxConstraints(bounds, m)
             if jacf is not None:
                 work = _LMWork.allocate(LM_BLEC_DER_WORKSZ(m, n, lec.k))
                 niter = dlevmar_blec_der(
@@ -708,7 +752,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                     <double*>covr.data, <void*>py_func)
     elif bounds is not None:
         ## Box-constrained minimization
-        bc = LMBoxConstraint(bounds, m)
+        bc = _LMBoxConstraints(bounds, m)
         if jacf is not None:
             work = _LMWork.allocate(LM_BC_DER_WORKSZ(m, n))
             niter = dlevmar_bc_der(
