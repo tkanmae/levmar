@@ -82,9 +82,6 @@ cdef class _LMFunction:
     cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
         raise NotImplementedError()
 
-    cdef int _check_funcs(self, double *p, int m, int n) except -1:
-        raise NotImplementedError()
-
     cdef bint _check_jacf(self, double *p, int m, int n):
         cdef:
             bint is_jacf_correct = True
@@ -135,46 +132,41 @@ cdef class _LMPyFunction(_LMFunction):
         self.args = args
         self.jacf = jacf
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
     cdef void eval_func(self, double *p, double *y, int m, int n):
         cdef:
-            object py_p = \
+            ndarray py_p = \
                PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
-            ndarray[dtype_t, ndim=1, mode='c'] py_y
+            ndarray py_y
 
         args = PySequence_Concat((py_p,), self.args)
-        py_y = PyObject_CallObject(<object>self.func, args)
+        py_y = PyObject_CallObject(self.func, args)
         ## Copy the result to `x`
-        memcpy(y, py_y.data, sizeof(double)*n)
+        memcpy(y, py_y.data, n*sizeof(double))
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
     cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
         cdef:
-            object py_p = \
+            ndarray py_p = \
                PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
-            ndarray[dtype_t, ndim=2, mode='c'] py_jacf
+            ndarray py_jacf
 
         args = PySequence_Concat((py_p,), self.args)
-        py_jacf = PyObject_CallObject(<object>self.jacf, args)
+        py_jacf = PyObject_CallObject(self.jacf, args)
         ## Copy the result to `jacf`
         memcpy(jacf, py_jacf.data, m*n*sizeof(double))
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    cdef int _check_funcs(self, double *p, int m, int n) except -1:
-        cdef object py_p = \
-                PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
+    cdef int _check_funcs(self, ndarray p, ndarray y) except -1:
+        cdef:
+            int m = p.shape[0]
+            int n = y.shape[0]
 
-        args = (py_p,) + self.args
+        args = (p,) + self.args
         try:
             ret = self.func(*args)
         except Exception, e:
             raise LMUserFuncError(e)
         if ret.size != n:
-            msg = ("`{0.__name__}()` returned a invalid size vector: "
-                   "{1} expected but {2} given".format(self.func, n, ret.size))
+            msg = ("`func` returned a invalid size vector: "
+                   "{0} expected but {1} returned".format(n, ret.size))
             raise LMUserFuncError(msg)
         if self.jacf is not None:
             try:
@@ -182,12 +174,11 @@ cdef class _LMPyFunction(_LMFunction):
             except Exception, e:
                 raise LMUserFuncError(e)
             if ret.size != m*n:
-                msg = ("`{0.__name__}()` returned a invalid size vector: "
-                       "{1} expected but {2} given".format(self.jacf, m*n, ret.size))
+                msg = ("`jacf` returned a invalid size vector: "
+                       "{0} expected but {1} returned".format(m*n, ret.size))
                 raise LMUserFuncError(msg)
-            if not self._check_jacf(p, m, n):
-                msg = ("`{0.__name__}()` may not be a correct Jacobian of "
-                       "`{1.__name__}()`".format(self.jacf, self.func))
+            if not self._check_jacf(<double*>p.data, m, n):
+                msg = "`jacf` may not be correct"
                 warnings.warn(msg, LMWarning)
         return 1
 
@@ -198,6 +189,34 @@ cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
 
 cdef inline void callback_jacf(double *p, double *jacf, int m, int n, void *ctx):
     (<_LMFunction>ctx).eval_jacf(p, jacf, m, n)
+
+
+cdef class _LMWorkSpace:
+    """A class managing the working array used internally in the levmar
+    libraray."""
+    cdef:
+        double* ptr
+        int prev_size
+
+    cdef double* allocate(self, size_t size):
+        if size != self.prev_size:
+            if self.ptr != NULL:
+                free(self.ptr)
+            self.ptr = <double*>malloc(size*sizeof(double))
+            if self.ptr == NULL:
+                PyErr_NoMemory()
+            self.prev_size = size
+        return self.ptr
+
+    def __dealloc__(self):
+        if self.ptr != NULL:
+            free(self.ptr)
+
+
+## This global variable holds a working array used internally in the
+## levmar library.  The necessarily size of the array depends on
+## specification of problems.
+cdef _LMWorkSpace _LMWork = _LMWorkSpace()
 
 
 cdef class _LMConstraints:
@@ -318,34 +337,6 @@ cdef class _LMLinEqnConstraints(_LMLinEqnLikeConstraints):
 
 cdef class _LMInequalConstraints(_LMLinEqnLikeConstraints):
     pass
-
-
-cdef class _LMWorkSpace:
-    """A class managing the working array used internally in the levmar
-    libraray."""
-    cdef:
-        double* ptr
-        int prev_size
-
-    cdef double* allocate(self, size_t size):
-        if size != self.prev_size:
-            if self.ptr != NULL:
-                free(self.ptr)
-            self.ptr = <double*>malloc(size*sizeof(double))
-            if self.ptr == NULL:
-                PyErr_NoMemory()
-            self.prev_size = size
-        return self.ptr
-
-    def __dealloc__(self):
-        if self.ptr != NULL:
-            free(self.ptr)
-
-
-## This global variable holds a working array used internally in the
-## levmar library.  The necessarily size of the array depends on
-## specification of problems.
-cdef _LMWorkSpace _LMWork = _LMWorkSpace()
 
 
 cdef class Output:
@@ -491,7 +482,6 @@ cdef class Output:
             return self._info[3]
 
 
-
 cdef object py_info(double *c_info):
     info = [[] for i in range(7)]
     info[0] = c_info[0]         # ||e||_2 at `p0`
@@ -585,8 +575,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
     """
     cdef:
         ## Make a copy of `p0`
-        ndarray[dtype_t,ndim=1,mode='c'] p = \
-                PyArray_ContiguousFromAny(p0, NPY_DOUBLE, 1, 1)
+        ndarray p = PyArray_ContiguousFromAny(p0, NPY_DOUBLE, 1, 1)
 
         int n = y.shape[0]
         int m = p.shape[0]
@@ -604,12 +593,11 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         _LMInequalConstraints lic
         ## Output
         npy_intp* dims = [m,m]
-        ndarray[dtype_t,ndim=2,mode='c'] covr = \
-                PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
+        ndarray covr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
 
     ## Set the functions and their extra arguments, and verify them.
     py_func = _LMPyFunction(func, args, jacf)
-    py_func._check_funcs(<double*>p.data, m, n)
+    py_func._check_funcs(p, y)
     ## Set the iteration parameters: `opts` and `maxit`
     opts[0] = mu
     if eps1 >= 1: raise ValueError("`eps1` must be less than 1.")
