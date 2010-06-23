@@ -11,7 +11,7 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-from numpy import array_str
+from numpy import (array_str, corrcoef, diag, sqrt, sum)
 
 
 cdef extern from "stdlib.h":
@@ -361,7 +361,7 @@ cdef class Output:
         covariance matrix.
     r2 : float
         The coefficient of determination.
-    covar : ndarray, shape=(m,m)
+    covr : ndarray, shape=(m,m)
         The covariance matrix corresponding to the least square fit.
     corr : ndarray, shape=(m,m)
         Pearson's correlation coefficient of the best-fit parameters.
@@ -391,25 +391,29 @@ cdef class Output:
         Print a summary of the fit.
     """
     cdef:
-        object _p, _p_stdv, _covar, _corr, _info, _cache
+        object _p, _p_stdv, _covr, _corr, _info, _cache
         double _r2
         int _m, _n
 
-    def __init__(self, p, p_stdv, double r2, covar, corr, int m, int n, info):
+    def __init__(self, func, p, y, args, covr, info):
         self._p = p
-        self._p_stdv = p_stdv
-        self._r2 = r2
-        self._covar = covar
-        self._corr = corr
-        self._m = m
-        self._n = n
+        self._covr = covr
         self._info = info
         self._cache = None
+
+        self._n = y.size
+        self._m = p.size
+        ## The standard deviations of the best-fit parameters
+        self._p_stdv = sqrt(diag(covr))
+        ## The correlation coefficient matrix of the best-fit parameters
+        self._corr = corrcoef(covr)
+        ## The coefficient of determination
+        self._r2 = 1 - sum((y-func(p,*args))**2)/sum((y-y.mean())**2)
 
         ## These arrays must be read-only.
         self._p.setflags(False)
         self._p_stdv.setflags(False)
-        self._covar.setflags(False)
+        self._covr.setflags(False)
         self._corr.setflags(False)
 
     def pprint(self):
@@ -428,7 +432,7 @@ cdef class Output:
                       "({3:.1f}%)\n".format(i, p, p_stdv, 100*abs(p_stdv/p)))
             buf.write("\n")
             buf.write("Covariance:\n")
-            buf.write(array_str(self._covar, precision=4))
+            buf.write(array_str(self._covr, precision=4))
             buf.write("\n\n")
             buf.write("Correlation:\n")
             buf.write(array_str(self._corr, precision=4))
@@ -452,9 +456,9 @@ cdef class Output:
         def __get__(self):
             return self._r2
 
-    property covar:
+    property covr:
         def __get__(self):
-            return self._covar
+            return self._covr
 
     property corr:
         def __get__(self):
@@ -602,11 +606,6 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         npy_intp* dims = [m,m]
         ndarray[dtype_t,ndim=2,mode='c'] covr = \
                 PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
-        ndarray[dtype_t,ndim=2,mode='c'] corr = \
-                PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
-        ndarray[dtype_t,ndim=1,mode='c'] p_stdv = \
-                PyArray_ZEROS(1, <npy_intp*>&m, NPY_DOUBLE, 0)
-        double r2
 
     ## Set the functions and their extra arguments, and verify them.
     py_func = _LMPyFunction(func, args, jacf)
@@ -780,16 +779,8 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
                 <double*>p.data, <double*>y.data, m, n,
                 maxit, opts, info, work, <double*>covr.data, <void*>py_func)
 
-    cdef int i, j
     if niter != LM_ERROR:
-        for i in range(m):
-            p_stdv[i] = dlevmar_stddev(<double*>covr.data, m, i)
-        for i in range(m):
-            for j in range(m):
-                corr[i][j] = dlevmar_corcoef(<double*>covr.data, m, i, j)
-        r2 = dlevmar_R2(callback_func,
-                        <double*>p.data, <double*>y.data, m, n, <void*>py_func)
-        output = Output(p, p_stdv, r2, covr, corr, m, n, py_info(info))
+        output = Output(func, p, y, args, covr, py_info(info))
 
     if niter == LM_ERROR:
         if <int>info[6] == 7:
