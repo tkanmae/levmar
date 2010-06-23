@@ -76,32 +76,6 @@ class LMWarning(UserWarning):
 
 
 cdef class _LMFunction:
-    cdef void eval_func(self, double *p, double *x, int m, int n):
-        raise NotImplementedError()
-
-    cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
-        raise NotImplementedError()
-
-    cdef bint _check_jacf(self, double *p, int m, int n):
-        cdef:
-            bint is_jacf_correct = True
-            double *err = NULL
-
-        err = <double*>malloc(n*sizeof(double))
-        if err == NULL:
-            PyErr_NoMemory()
-        dlevmar_chkjac(callback_func, callback_jacf, p, m, n, <void*>self, err)
-
-        cdef int i
-        for i in range(n):
-            if err[i] < 0.5:
-                is_jacf_correct = False
-                break
-        free(err)
-        return is_jacf_correct
-
-
-cdef class _LMPyFunction(_LMFunction):
     """
     Parameters
     ----------
@@ -177,10 +151,28 @@ cdef class _LMPyFunction(_LMFunction):
                 msg = ("`jacf` returned a invalid size vector: "
                        "{0} expected but {1} returned".format(m*n, ret.size))
                 raise LMUserFuncError(msg)
-            if not self._check_jacf(<double*>p.data, m, n):
+            if not self.__check_jacf(<double*>p.data, m, n):
                 msg = "`jacf` may not be correct"
                 warnings.warn(msg, LMWarning)
         return 1
+
+    cdef bint __check_jacf(self, double *p, int m, int n):
+        cdef:
+            bint is_jacf_correct = True
+            double *err = NULL
+
+        err = <double*>malloc(n*sizeof(double))
+        if err == NULL:
+            PyErr_NoMemory()
+        dlevmar_chkjac(callback_func, callback_jacf, p, m, n, <void*>self, err)
+
+        cdef int i
+        for i in range(n):
+            if err[i] < 0.5:
+                is_jacf_correct = False
+                break
+        free(err)
+        return is_jacf_correct
 
 
 cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
@@ -584,7 +576,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         double info[LM_INFO_SZ]
         double* work = NULL
 
-        _LMPyFunction py_func
+        _LMFunction py_func
         ## Box constraints
         _LMBoxConstraints bc
         ## Linear equation constraints
@@ -596,7 +588,7 @@ def _run_levmar(func, p0, ndarray[dtype_t,ndim=1,mode='c'] y, args=(), jacf=None
         ndarray covr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
 
     ## Set the functions and their extra arguments, and verify them.
-    py_func = _LMPyFunction(func, args, jacf)
+    py_func = _LMFunction(func, args, jacf)
     py_func._check_funcs(p, y)
     ## Set the iteration parameters: `opts` and `maxit`
     opts[0] = mu
