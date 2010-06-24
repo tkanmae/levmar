@@ -11,13 +11,18 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-from numpy import (array_str, corrcoef, diag, sqrt, sum)
+# from numpy import (array_str, corrcoef, diag, sqrt, sum)
+from numpy import array_str
 
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
     void *malloc(size_t size)
     void *memcpy(void *dest, void *src, size_t n)
+
+
+cdef extern from "math.h":
+    double sqrt(double x)
 
 
 cdef extern from "float.h":
@@ -327,6 +332,40 @@ cdef class _LMLinConstraints(_LMConstraints):
             free(self.vec)
 
 
+@cython.cdivision(True)
+cdef void stdv(double* covr, size_t m, double* p_stdv):
+    cdef size_t i
+    for i in range(m):
+        p_stdv[i] = sqrt(covr[i+m*i])
+
+
+@cython.cdivision(True)
+cdef void corrcoef(double* covr, size_t m, double* corr):
+    cdef size_t i, j
+    for i in range(m):
+        for j in range(m):
+            corr[i*m+j] = covr[i*m+j] / sqrt(covr[i*m+i]*covr[j*m+j])
+
+
+@cython.cdivision(True)
+cdef void r2(double* y, double *x, size_t n, double* r2):
+    cdef:
+        size_t i
+        double ymean, tmp, sserr, sstot
+    tmp = 0.0
+    for i in range(n):
+        tmp += y[i]
+    ymean = tmp / n
+    sserr = 0.0
+    sstot = 0.0
+    for i in range(n):
+        tmp = y[i] - x[i]
+        sserr += tmp*tmp
+        tmp = y[i] - ymean
+        sstot += tmp*tmp
+    r2[0] = 1.0 - sserr / sstot
+
+
 cdef class Output:
     """A class stores output from the levmar library.
 
@@ -371,24 +410,32 @@ cdef class Output:
     """
     cdef:
         ndarray _p, _p_stdv, _covr, _corr,
-        object _info, _cache
+        object _info, _cache, _m, _n
         double _r2
-        int _m, _n
 
     def __init__(self, func, ndarray p, ndarray y, args, ndarray covr, info):
+        cdef:
+            Py_ssize_t m = PyArray_SIZE(p)
+            Py_ssize_t n = PyArray_SIZE(y)
+            npy_intp* dims = [m,m]
+            ndarray z
+
         self._p = p
         self._covr = covr
         self._info = info
         self._cache = None
 
-        self._n = y.size
-        self._m = p.size
+        self._n = n
+        self._m = m
         ## The standard deviations of the best-fit parameters
-        self._p_stdv = sqrt(diag(covr))
+        self._p_stdv = PyArray_ZEROS(1, <npy_intp*>&m, NPY_DOUBLE, 0)
+        stdv(<double*>covr.data, m, <double*>self._p_stdv.data)
         ## The correlation coefficient matrix of the best-fit parameters
-        self._corr = corrcoef(covr)
+        self._corr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
+        corrcoef(<double*>covr.data, m, <double*>self._corr.data)
         ## The coefficient of determination
-        self._r2 = 1 - sum((y-func(p,*args))**2)/sum((y-y.mean())**2)
+        z = func(p, *args)
+        r2(<double*>y.data, <double*>z.data, n, &self._r2)
 
         ## These arrays must be read-only.
         self._p.setflags(False)
