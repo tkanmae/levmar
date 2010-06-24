@@ -61,6 +61,7 @@ class TestModel(TestCase):
 
 
 class TestLevmarFunc(TestCase):
+    __test__ = False
 
     def setUp(self):
         self.x = np.arange(10, dtype=np.float64)
