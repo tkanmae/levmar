@@ -11,7 +11,6 @@ cimport cython
 from numpy cimport *
 import warnings
 from cStringIO import StringIO
-# from numpy import (array_str, corrcoef, diag, sqrt, sum)
 from numpy import array_str
 
 
