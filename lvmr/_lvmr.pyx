@@ -247,27 +247,32 @@ cdef class _LMBoxConstraints(_LMConstraints):
         if not isinstance(bounds, (list, tuple)):
             raise TypeError("`bounds` must be a tuple/list")
         if len(bounds) != m:
-            msg = ("`bounds` must be length of {0} "
-                   "({1} is given)".format(m, len(bounds)))
+            msg = ("`bounds` must be length of {0} ({1} is given)"
+                   .format(m, len(bounds)))
             raise ValueError(msg)
-
+        ## Obviously, a lower bound cannot be larger than a upper bound.
+        ## Since the levmar library returns LM_ERROR when the requirement
+        ## is not satisfied, the requirement is not checked here.
         for i, b in enumerate(bounds):
-            if b is None:
+            if isinstance(b, tuple):
+                if len(b) == 2:
+                    if b[0] in (None, NPY_NAN, -NPY_INFINITY):
+                        self.lb[i] = -DBL_MAX
+                    else:
+                        self.lb[i] = float(b[0])
+                    if b[1] in (None, NPY_NAN, NPY_INFINITY):
+                        self.ub[i] = DBL_MAX
+                    else:
+                        self.ub[i] = float(b[1])
+                else:
+                    raise ValueError("A component of `bounds` must be a None "
+                                     "or a tuple of 2 floats/Nones")
+            elif b is None:
                 self.lb[i] = -DBL_MAX
                 self.ub[i] =  DBL_MAX
-            elif len(b) == 2:
-                if b[0] in (None, NPY_NAN, -NPY_INFINITY):
-                    self.lb[i] = -DBL_MAX
-                else:
-                    self.lb[i] = float(b[0])
-                if b[1] in (None, NPY_NAN, NPY_INFINITY):
-                    self.ub[i] = DBL_MAX
-                else:
-                    self.ub[i] = float(b[1])
             else:
-                msg = ("A component of `bounds` must be a None or "
-                       "a tuple of 2 floats/Nones")
-                raise ValueError(msg)
+                raise ValueError("A component of `bounds` must be a None "
+                                 "or a tuple of 2 floats/Nones")
 
     def __cinit__(self, object bounds, int m):
         self.lb = <double*>malloc(m*sizeof(double))
@@ -298,10 +303,10 @@ cdef class _LMLinConstraints(_LMConstraints):
             Py_ssize_t size1 = PyArray_SIZE(A)
             Py_ssize_t size2 = PyArray_SIZE(b)
             Py_ssize_t k
-        # In case of linear equation constraints, obviously a constraint matrix
-        # cannot have more rows than columns for solving a problems.  Since the
-        # levmar library returns LM_ERROR when this requirement is not
-        # fulfilled, the requirement is not checked here.
+        ## In case of linear equation constraints, obviously a constraint
+        ## matrix cannot have more rows than columns for solving a problems.
+        ## Since the levmar library returns LM_ERROR when this requirement
+        ## is not satisfied, the requirement is not checked here.
         if A.ndim == 2:
             if A.shape[1] != m :
                 raise ValueError("The shape of the constraint matrix must be "
@@ -310,7 +315,6 @@ cdef class _LMLinConstraints(_LMConstraints):
             if size1 % m != 0:
                 raise ValueError("The shape of the constraint matrix must be "
                                  "(kx{0})".format(m))
-        print A
         ## the number of equations/inequalities
         k = size1 // m
 
