@@ -292,26 +292,31 @@ cdef class _LMLinConstraints(_LMConstraints):
         int k
 
     def __cinit__(self, object mat, object vec, int m):
-        if m < 2:
-            raise ValueError("Linear equation constraints can not be defined.")
         cdef:
             ndarray A = PyArray_ContiguousFromAny(mat, NPY_DOUBLE, 1, 2)
             ndarray b = PyArray_ContiguousFromAny(vec, NPY_DOUBLE, 1, 1)
             Py_ssize_t size1 = PyArray_SIZE(A)
             Py_ssize_t size2 = PyArray_SIZE(b)
             Py_ssize_t k
-
-        if size1 % m != 0:
-            msg = ("The shape of the constraint matrix must be "
-                   "(kx{0})".format(m))
-            raise ValueError(msg)
+        # In case of linear equation constraints, obviously a constraint matrix
+        # cannot have more rows than columns for solving a problems.  Since the
+        # levmar library returns LM_ERROR when this requirement is not
+        # fulfilled, the requirement is not checked here.
+        if A.ndim == 2:
+            if A.shape[1] != m :
+                raise ValueError("The shape of the constraint matrix must be "
+                                 "(kx{0})".format(m))
+        else:
+            if size1 % m != 0:
+                raise ValueError("The shape of the constraint matrix must be "
+                                 "(kx{0})".format(m))
+        print A
         ## the number of equations/inequalities
         k = size1 // m
 
         if size2 != k:
-            msg = ("The shape of the RH constraint vector must be "
-                   "consistent with ({0}x1)".format(k))
-            raise ValueError(msg)
+            raise ValueError("The shape of the RH constraint vector must be "
+                             "consistent with ({0}x1)".format(k))
 
         self.mat = <double*> malloc(m*k*sizeof(double))
         if self.mat == NULL:
