@@ -40,24 +40,55 @@ y = yt + 0.2 * np.random.randn(x.size)
 ## Initial estimate
 p0 = [1.0, 0.5, 0.5]
 ## Fitting with analytic Jacobian
-ret = lvmr.levmar(expf, p0, y, jacf=jac_expf, args=(x,))
+p, covr, info = lvmr.levmar(expf, p0, y, jacf=jac_expf, args=(x,))
 
-print ':Expected:'
-print pt
-print ':Estimate:'
-print ret.p
-print
+
+## The standard deviation in the best-fit parameters
+p_stdv = np.sqrt(np.diag(covr))
+## The correlation coefficients of the best-fit parameters
+corr = np.corrcoef(covr)
+## The coefficient of determination
+r2 = 1 - np.sum((y-expf(p, x))**2) / np.sum((y-y.mean())**2)
+
+
+## Print the result
+print(":Expected:")
+print("{0[0]:9f} {0[1]:9f} {0[2]:9f}".format(pt))
+print(":Estimate:")
+print("{0[0]:9f} {0[1]:9f} {0[2]:9f}".format(p))
+print("")
 ## Print summary of the fitting
-print ' Summary '.center(60, '*')
-print ret
-print ''.center(60, '*')
+print(" Summary ".center(60, '*'))
+print(":Iterations:")
+print("  {0}".format(info[2]))
+print("")
+print(":Reason for the termination:")
+print("  {0}".format(info[3]))
+print("")
+print(":Parameters:")
+for i, (q, dq) in enumerate(zip(p, p_stdv)):
+    rel = 100 * abs(dq/q)
+    print("  p[{0}]:  {1:+9f}  +/-  {2:+9f}  ({3:.1f}%)"
+          .format(i, q, dq, rel))
+print("")
+print(":Covariance:")
+print np.array_str(covr, precision=4)
+print("")
+print(":Correlation:")
+print np.array_str(corr, precision=4)
+print("")
+print(":R2:")
+print("  {0:6g}".format(r2))
+print(''.center(60, '*'))
+
+
 ## Plot the result
 try:
     from matplotlib import pyplot as plt
 
     plt.plot(x, y, 'bo')
     plt.plot(x, yt, 'b-', label='true')
-    plt.plot(x, expf(ret.p, x), 'r-', label='fit')
+    plt.plot(x, expf(p, x), 'r-', label='fit')
     plt.legend()
     plt.show()
 except ImportError:

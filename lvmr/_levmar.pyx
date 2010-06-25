@@ -10,18 +10,12 @@ from __future__ import division
 cimport cython
 from numpy cimport *
 import warnings
-from cStringIO import StringIO
-from numpy import array_str
 
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
     void *malloc(size_t size)
     void *memcpy(void *dest, void *src, size_t n)
-
-
-cdef extern from "math.h":
-    double sqrt(double x)
 
 
 cdef extern from "float.h":
@@ -339,192 +333,6 @@ cdef class _LMLinConstraints(_LMConstraints):
             free(self.vec)
 
 
-@cython.cdivision(True)
-cdef void stdv(double* covr, size_t m, double* p_stdv):
-    cdef size_t i
-    for i in range(m):
-        p_stdv[i] = sqrt(covr[i+m*i])
-
-
-@cython.cdivision(True)
-cdef void corrcoef(double* covr, size_t m, double* corr):
-    cdef size_t i, j
-    for i in range(m):
-        for j in range(m):
-            corr[i*m+j] = covr[i*m+j] / sqrt(covr[i*m+i]*covr[j*m+j])
-
-
-@cython.cdivision(True)
-cdef void r2(double* y, double *x, size_t n, double* r2):
-    cdef:
-        size_t i
-        double ymean, tmp, sserr, sstot
-    tmp = 0.0
-    for i in range(n):
-        tmp += y[i]
-    ymean = tmp / n
-    sserr = 0.0
-    sstot = 0.0
-    for i in range(n):
-        tmp = y[i] - x[i]
-        sserr += tmp*tmp
-        tmp = y[i] - ymean
-        sstot += tmp*tmp
-    r2[0] = 1.0 - sserr / sstot
-
-
-cdef class Output:
-    """A class stores output from the levmar library.
-
-    Attributes
-    ----------
-    p : ndarray, shape=(m,)
-        The best-fit parameters.
-    p_stdv : ndarray, shape=(m,)
-        The standard deviation of the best-fit parameters.  The standard
-        deviation is computed as square root of diagonal elements of the
-        covariance matrix.
-    r2 : float
-        The coefficient of determination.
-    covr : ndarray, shape=(m,m)
-        The covariance matrix corresponding to the least square fit.
-    corr : ndarray, shape=(m,m)
-        Pearson's correlation coefficient of the best-fit parameters.
-    ndf : int
-        The degrees of freedom.
-    niter : int
-        The number of the iterations
-    reason : str
-        The reason for the termination
-    info : list
-        Various information regarding the minimization.
-            0: ||e||_2 at `p0`.
-            1:
-                0: 2-norm of e
-                1: infinity-norm of J^T.e
-                2: 2-norm of Dp
-                3: mu / max{(J^T.J)_ii}
-            2: The number of the iterations
-            3: The reason for the termination
-            4: The number of `func` evaluations
-            5: The number of `jacf` evaluations
-            6: The number of the linear system solved
-
-    Methods
-    -------
-    pprint()
-        Print a summary of the fit.
-    """
-    cdef:
-        ndarray _p, _p_stdv, _covr, _corr,
-        object _info, _cache, _m, _n
-        double _r2
-
-    def __init__(self, func, ndarray p, ndarray y, args, ndarray covr, info):
-        cdef:
-            Py_ssize_t m = PyArray_SIZE(p)
-            Py_ssize_t n = PyArray_SIZE(y)
-            npy_intp* dims = [m,m]
-            ndarray z
-
-        self._p = p
-        self._covr = covr
-        self._info = info
-        self._cache = None
-
-        self._n = n
-        self._m = m
-        ## The standard deviations of the best-fit parameters
-        self._p_stdv = PyArray_ZEROS(1, <npy_intp*>&m, NPY_DOUBLE, 0)
-        stdv(<double*>covr.data, m, <double*>self._p_stdv.data)
-        ## The correlation coefficient matrix of the best-fit parameters
-        self._corr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
-        corrcoef(<double*>covr.data, m, <double*>self._corr.data)
-        ## The coefficient of determination
-        z = func(p, *args)
-        r2(<double*>y.data, <double*>z.data, n, &self._r2)
-
-        ## These arrays must be read-only.
-        self._p.setflags(False)
-        self._p_stdv.setflags(False)
-        self._covr.setflags(False)
-        self._corr.setflags(False)
-
-    def pprint(self):
-        print(self.__str__())
-
-    def __str__(self):
-        if self._cache is None:
-            buf = StringIO()
-
-            buf.write("Iteration: {0}\n".format(self.niter))
-            buf.write("Reason: {0}\n\n".format(self.reason))
-            buf.write("Degrees of freedom: {0}\n\n".format(self.ndf))
-            buf.write("Parameters:\n")
-            for i, (p, p_stdv) in enumerate(zip(self._p, self._p_stdv)):
-                buf.write("p[{0}] = {1:<+12.6g} +/- {2:<12.6g} "
-                      "({3:.1f}%)\n".format(i, p, p_stdv, 100*abs(p_stdv/p)))
-            buf.write("\n")
-            buf.write("Covariance:\n")
-            buf.write(array_str(self._covr, precision=4))
-            buf.write("\n\n")
-            buf.write("Correlation:\n")
-            buf.write(array_str(self._corr, precision=4))
-            buf.write("\n\n")
-            buf.write("R2: {0:.5f}".format(self._r2))
-
-            self._cache = buf.getvalue()
-            buf.close()
-
-        return self._cache
-
-    property p:
-        def __get__(self):
-            return self._p
-
-    property p_stdv:
-        def __get__(self):
-            return self._p_stdv
-
-    property r2:
-        def __get__(self):
-            return self._r2
-
-    property covr:
-        def __get__(self):
-            return self._covr
-
-    property corr:
-        def __get__(self):
-            return self._corr
-
-    property m:
-        def __get__(self):
-            return self._m
-
-    property n:
-        def __get__(self):
-            return self._n
-
-    property info:
-        def __get__(self):
-            return self._info
-
-    property ndf:
-        def __get__(self):
-            """The degrees of freedom"""
-            return self._n - self._m
-
-    property niter:
-        def __get__(self):
-            """The number of the iterations"""
-            return self._info[2]
-
-    property reason:
-        def __get__(self):
-            return self._info[3]
-
-
 cdef object py_info(double *c_info):
     info = (
         c_info[0],        # ||e||_2 at `p0`
@@ -564,10 +372,10 @@ cdef inline int set_iter_params(double mu, double eps1, double eps2, double eps3
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def _run_levmar(func, p0, y, args=(), jacf=None,
-                bounds=None, A=None, b=None, C=None, d=None,
-                double mu=1e-3, double eps1=_LM_EPS1, double eps2=_LM_EPS2,
-                double eps3=_LM_EPS3, int maxit=1000, bint cdif=False):
+def _levmar(func, p0, y, args=(), jacf=None,
+            bounds=None, A=None, b=None, C=None, d=None,
+            double mu=1e-3, double eps1=_LM_EPS1, double eps2=_LM_EPS2,
+            double eps3=_LM_EPS3, int maxit=1000, bint cdif=False):
     """
     Parameters
     ----------
@@ -614,8 +422,23 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
 
     Returns
     -------
-    output : levmar.Output
-        The output of the minimization
+    p : ndarray, shape=(m,)
+        The best-fit parameters
+    covr : ndarray, shape=(m,m)
+        The covariance of the best-fit parameters
+    info : list
+        Various information regarding the minimization
+            0: ||e||_2 at `p0`.
+            1:
+                0: 2-norm of e
+                1: infinity-norm of J^T.e
+                2: 2-norm of Dp
+                3: mu / max{(J^T.J)_ii}
+            2: The number of the iterations
+            3: The reason for the termination
+            4: The number of `func` evaluations
+            5: The number of `jacf` evaluations
+            6: The number of the linear system solved
 
     Notes
     -----
@@ -626,10 +449,6 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
     * Linear *inequality* constraints are defined as C*p>=d where C
     is (k2xm) matrix and d is (k2x1) vector (See comments in
     src/levmar-2.5/lmbleic_core.c).
-
-    See Also
-    --------
-    levmar.Output
     """
     cdef:
         ## Make a copy of `p0`
@@ -814,20 +633,18 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
                 <double*>p.data, <double*>x.data, m, n,
                 maxit, opts, info, work, <double*>covr.data, <void*>lm_func)
 
-    cdef int reason_id = <int>info[6]
-    if niter != LM_ERROR:
-        if reason_id in _LM_STOP_REASONS_WARNED:
-            ## Issue warning for unsuccessful termination.
-            warnings.warn(_LM_STOP_REASONS[reason_id], LMWarning)
-        output = Output(func, p, y, args, covr, py_info(info))
-    else:
+    reason_id = <int>info[6]
+    if reason_id in _LM_STOP_REASONS_WARNED:
+        ## Issue warning for unsuccessful termination.
+        warnings.warn(_LM_STOP_REASONS[reason_id], LMWarning)
+    if niter == LM_ERROR:
         if reason_id == 7:
             raise LMUserFuncError(
                 "Stopped by invalid values (NaN or Inf) returned by `func`")
         else:
             raise LMRuntimeError
 
-    return output
+    return p, covr, py_info(info)
 
 
 def __py_verify_funcs(_LMFunction func, ndarray p, int m, int n):

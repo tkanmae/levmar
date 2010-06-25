@@ -13,7 +13,7 @@ library_dir = 'levmar-2.5'
 
 
 def get_extension_sources():
-    src = ('_lvmr.c',)
+    src = ('_levmar.c',)
     return [pjoin(package_path, f) for f in src]
 
 
@@ -32,7 +32,7 @@ def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info
 
-    config = Configuration('lvmr',
+    config = Configuration('_lvmr',
                            parent_package,
                            top_path,
                            package_path=package_path)
@@ -42,7 +42,7 @@ def configuration(parent_package='', top_path=None):
                        sources=get_library_sources())
 
     ## Add `levmar` extension module.
-    config.add_extension('_lvmr',
+    config.add_extension('_levmar',
                          sources=get_extension_sources(),
                          include_dirs=get_extension_include_dirs(),
                          libraries=['levmar'],

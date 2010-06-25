@@ -7,7 +7,7 @@ from __future__ import division
 import numpy as np
 from numpy.testing import *
 
-from lvmr._lvmr import (_LMBoxConstraints)
+from lvmr._levmar import _LMBoxConstraints
 
 
 def test_valid1():
