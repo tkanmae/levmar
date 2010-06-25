@@ -10,6 +10,44 @@ import numpy as np
 
 _Output = namedtuple('Ouput', 'p, p_stdv, covr, corr, r2, niter, ndf, info')
 class Output(_Output):
+    """
+    Attributes
+    ----------
+    p : ndarray, shape=(m,)
+        The best-fit parameters.
+    p_stdv : ndarray, shape=(m,)
+        The standard deviation of the best-fit parameters.  The standard
+        deviation is computed as square root of diagonal elements of the
+        covariance matrix.
+    r2 : float
+        The coefficient of determination.
+    covr : ndarray, shape=(m,m)
+        The covariance matrix corresponding to the least square fit.
+    corr : ndarray, shape=(m,m)
+        Pearson's correlation coefficient of the best-fit parameters.
+    niter : int
+        The number of the iterations
+    ndf : int
+        The degrees of freedom.
+    info : tuple
+        Various information regarding the minimization.
+            0: ||e||_2 at `p0`.
+            1:
+                0: 2-norm of e
+                1: infinity-norm of J^T.e
+                2: 2-norm of Dp
+                3: mu / max{(J^T.J)_ii}
+            2: The number of the iterations
+            3: The reason for the termination
+            4: The number of `func` evaluations
+            5: The number of `jacf` evaluations
+            6: The number of the linear system solved
+
+    Methods
+    -------
+    pprint()
+        Print a summary of the fit.
+    """
     __slots__ =()
     def pprint(self, file=sys.stdout):
         """
@@ -47,8 +85,30 @@ class Output(_Output):
 
 
 def _full_output(func, p, y, args, covr, info):
+    """
+    Parameters
+    ----------
+    func : callable
+        A function or method computing the model function.
+    p : array_like, shape (m,)
+        The best-fit parameters
+    y : array_like, shape (n,)
+        The dependent data, or the observation.
+    args : tuple
+        Extra arguments passed to `func`
+    covr : ndarray, shape=(m,m)
+        The covariance matrix corresponding to the least square fit.
+    info : tuple
+        Information regarding the minimization returned from `levmar()`.
+
+    Returns
+    -------
+    output : Output
+        An `Output` object
+    """
+    ## The number of the iterations
     niter = info[2]
-    ## The number of the degree of freedom
+    ## The number of the degrees of freedom
     ndf = y.size - p.size
     ## The standard deviation in the best-fit parameters
     p_stdv = np.sqrt(np.diag(covr))

@@ -81,7 +81,6 @@ def levmar(func, p0, y, args=(), jacf=None,
     If `full_output` is True, a `utils.Output` object is returned
     instead of the above three.
 
-
     Notes
     -----
     * Linear equation constraints are specified as A*p=b where A is
@@ -91,6 +90,10 @@ def levmar(func, p0, y, args=(), jacf=None,
     * Linear *inequality* constraints are defined as C*p>=d where C
     is (k2xm) matrix and d is (k2x1) vector (See comments in
     src/levmar-2.5/lmbleic_core.c).
+
+    See Also
+    --------
+    utils.Output
     """
     p, covr, info =  _levmar(func, p0,  y, args, jacf, bounds,
                              A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)
