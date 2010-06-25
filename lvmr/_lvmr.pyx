@@ -32,8 +32,6 @@ cdef extern from "float.h":
 cdef extern from "Python.h":
     object PyObject_CallObject(object obj, object args)
     object PySequence_Concat(object obj1, object obj2)
-    object PyTuple_New(Py_ssize_t len)
-    void PyTuple_SET_ITEM(object  p, Py_ssize_t pos, object o)
     PyObject* PyErr_NoMemory() except NULL
 
 
