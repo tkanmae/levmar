@@ -426,7 +426,7 @@ def _levmar(func, p0, y, args=(), jacf=None,
         The best-fit parameters
     covr : ndarray, shape=(m,m)
         The covariance of the best-fit parameters
-    info : list
+    info : tuple
         Various information regarding the minimization
             0: ||e||_2 at `p0`.
             1:
