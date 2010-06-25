@@ -1023,21 +1023,5 @@ class TestMod2HS52(TestCase):
         assert_array_almost_equal(ret.p, self.pt)
 
 
-class TestFuncErrors(TestCase):
-
-    def setUp(self):
-        self.x = np.arange(10, dtype=np.float64)
-        self.y = np.arange(10, dtype=np.float64)
-        self.func = lambda p, x: p[0]*x + p[1]
-        self.p0 = (1, 1)
-
-    def test_invalid_args(self):
-        assert_raises(LMUserFuncError,
-                      run_levmar, self.func, self.p0, self.y)
-        assert_raises(LMUserFuncError,
-                      run_levmar, self.func, self.p0, self.y,
-                      args=(self.x, ()))
-
-
 if __name__ == '__main__':
     run_module_suite()

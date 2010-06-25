@@ -60,26 +60,5 @@ class TestModel(TestCase):
             assert_raises(TypeError, lvmr.Model, self.func, jacf=f)
 
 
-class TestLevmarFunc(TestCase):
-    __test__ = False
-
-    def setUp(self):
-        self.x = np.arange(10, dtype=np.float64)
-        self.y = np.arange(10, dtype=np.float64)
-        self.func = lambda p, x: p[0]*x + p[1]
-        self.p0 = (1, 1)
-
-    def test_funcs_not_callable(self):
-        invalid_funcs = (1, 'foo', [1, 2], (1, 2), {'foo': 1})
-        for f in invalid_funcs:
-            ## `func`
-            assert_raises(TypeError,
-                          lvmr.levmar, f, self.p0, self.y, args=(self.x,))
-            ## `jacf`
-            assert_raises(TypeError,
-                          lvmr.levmar, self.func, self.p0, self.y,
-                          args=(self.x,), jacf=f)
-
-
 if __name__ == '__main__':
     run_module_suite()

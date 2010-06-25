@@ -829,3 +829,9 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
             raise LMRuntimeError
 
     return output
+
+
+def __py_verify_funcs(_LMFunction func, ndarray p, int m, int n):
+    """Test porpose only"""
+    func._check_funcs(p, m, n)
+    return True
