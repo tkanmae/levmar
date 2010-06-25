@@ -32,7 +32,8 @@ cdef extern from "float.h":
 cdef extern from "Python.h":
     object PyObject_CallObject(object obj, object args)
     object PySequence_Concat(object obj1, object obj2)
-
+    object PyTuple_New(Py_ssize_t len)
+    void PyTuple_SET_ITEM(object  p, Py_ssize_t pos, object o)
     PyObject* PyErr_NoMemory() except NULL
 
 
@@ -527,20 +528,21 @@ cdef class Output:
 
 
 cdef object py_info(double *c_info):
-    info = [[] for i in range(7)]
-    info[0] = c_info[0]         # ||e||_2 at `p0`
-    info[1] = (c_info[1],       # ||e||_2 at `p`
-               c_info[2],       # ||J^T.e||_inf
-               c_info[3],       # ||Dp||_2
-               c_info[4])       # mu / max[J^T.J]_ii
-    info[2] = <int>c_info[5]    # number of iterations
-    # reason for terminating
-    info[3] = _LM_STOP_REASONS[<int>c_info[6]]
-    info[4] = <int>c_info[7]    # number of `func` evaluations
-    info[5] = <int>c_info[8]    # number of `jacf` evaluations
-    info[6] = <int>c_info[9]    # number of linear system solved
-
-    return tuple(info)
+    info = (
+        c_info[0],        # ||e||_2 at `p0`
+        (
+            c_info[1],    # ||e||_2 at `p`
+            c_info[2],    # ||J^T.e||_inf
+            c_info[3],    # ||Dp||_2
+            c_info[4],    # mu / max[J^T.J]_ii
+        ),
+        <int>c_info[5],   # number of iterations
+        _LM_STOP_REASONS[<int>c_info[6]],  # reason for terminating
+        <int>c_info[7],   # number of `func` evaluations
+        <int>c_info[8],   # number of `jacf` evaluations
+        <int>c_info[9],   # number of linear system solved
+    )
+    return info
 
 
 cdef inline int verify_funcs(_LMFunction func, ndarray p, int m, int n) except -1:
@@ -815,14 +817,13 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
                 maxit, opts, info, work, <double*>covr.data, <void*>lm_func)
 
     cdef int reason_id = <int>info[6]
-
     if niter != LM_ERROR:
         if reason_id in _LM_STOP_REASONS_WARNED:
             ## Issue warning for unsuccessful termination.
             warnings.warn(_LM_STOP_REASONS[reason_id], LMWarning)
         output = Output(func, p, y, args, covr, py_info(info))
     else:
-        if <int>info[6] == 7:
+        if reason_id == 7:
             raise LMUserFuncError(
                 "Stopped by invalid values (NaN or Inf) returned by `func`")
         else:
