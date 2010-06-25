@@ -587,7 +587,7 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
         takes, at least, one length of m vector and returns the (nxm)
         Jacobian matrix or a campatible C-contiguous vector.  If it is
         None, the Jacobian will be approximated.
-    bounds : tuple/list, length m
+    bounds : tuple/list, length m, optional
         Box constraints.  Each constraint can be a tuple of two
         floats/Nones or None.  A tuple determines the (inclusive) lower
         and upper bound, and None means no constraint.  If one of two
@@ -595,7 +595,7 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
     A : array_like, shape (k1,m), optional
         A linear equation constraints matrix
     b : array_like, shape (k1,), optional
-        A right-hand equation linear constraint vector
+        A right-hand linear equation constraint vector
     C : array_like, shape (k2,m), optional
         A linear *inequality* constraints matrix
     d : array_like, shape (k2,), optional
@@ -622,11 +622,11 @@ def _run_levmar(func, p0, y, args=(), jacf=None,
     Notes
     -----
     * Linear equation constraints are specified as A*p=b where A is
-    k1xm matrix and b is k1x1  vector (See comments in
+    (k1xm) matrix and b is (k1x1) vector (See comments in
     src/levmar-2.5/lmlec_core.c).
 
     * Linear *inequality* constraints are defined as C*p>=d where C
-    is k2xm matrix and d is k2x1 vector (See comments in
+    is (k2xm) matrix and d is (k2x1) vector (See comments in
     src/levmar-2.5/lmbleic_core.c).
 
     See Also

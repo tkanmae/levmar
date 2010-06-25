@@ -132,7 +132,7 @@ class Levmar(object):
         ----------
         p0 : array_like, shape (m,)
             The initial estimate of the parameters.
-        bounds : tuple/list, length m
+        bounds : tuple/list, length m, optional
             Box constraints.  Each constraint can be a tuple of two
             floats/Nones or None.  A tuple determines the (inclusive)
             lower and upper bound, and None means no constraint.  If one
@@ -141,7 +141,7 @@ class Levmar(object):
         A : array_like, shape (k1,m), optional
             A linear equation constraints matrix
         b : array_like, shape (k1,), optional
-            A right-hand equation linear constraint vector
+            A right-hand linear equation constraint vector
         C : array_like, shape (k2,m), optional
             A linear *inequality* constraints matrix
         d : array_like, shape (k2,), optional
@@ -168,11 +168,11 @@ class Levmar(object):
         Notes
         -----
         * Linear equation constraints are specified as A*p=b where A is
-        k1xm matrix and b is k1x1  vector (See comments in
+        (k1xm) matrix and b is (k1x1) vector (See comments in
         src/levmar-2.5/lmlec_core.c).
 
         * Linear *inequality* constraints are defined as C*p>=d where C
-        is k2xm matrix and d is k2x1 vector (See comments in
+        is (k2xm) matrix and d is (k2x1) vector (See comments in
         src/levmar-2.5/lmbleic_core.c).
 
         See Also
