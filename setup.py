@@ -3,28 +3,34 @@
 # ----------------------------------------------------------------------
 # Copyright (c) 2010 Takeshi Kanmae
 # ----------------------------------------------------------------------
-import sys
-import os
 from os.path import join as pjoin
 
-package_path = 'lvmr'
-version = '0.10'
-library_dir = 'levmar-2.5'
+
+## Get __version__ from lvmr/__init__.py
+with file('lvmr/__init__.py') as fd:
+    for l in fd:
+        if l.startswith('__version__'):
+            exec(l)
+            break
+
+
+PACKAGE_PATH = 'lvmr'
+LIBRARY_DIR = 'levmar-2.5'
 
 
 def get_extension_sources():
     src = ('_levmar.c',)
-    return [pjoin(package_path, f) for f in src]
+    return [pjoin(PACKAGE_PATH, f) for f in src]
 
 
 def get_extension_include_dirs():
-    return [package_path, library_dir]
+    return [PACKAGE_PATH, LIBRARY_DIR]
 
 
 def get_library_sources():
     src = ('lm.c', 'Axb.c', 'misc.c', 'lmlec.c', 'lmbc.c', 'lmblec.c',
            'lmbleic.c',)
-    src = [pjoin(library_dir, f) for f in src]
+    src = [pjoin(LIBRARY_DIR, f) for f in src]
     return src
 
 
@@ -35,7 +41,7 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('lvmr',
                            parent_package,
                            top_path,
-                           package_path=package_path)
+                           package_path=PACKAGE_PATH)
 
     ## Add `levmar` C library
     config.add_library('levmar',
@@ -49,7 +55,7 @@ def configuration(parent_package='', top_path=None):
                          extra_info=get_info('lapack_opt'),)
 
     ## Add `tests` directory.
-    config.add_data_dir(('tests', pjoin(package_path, 'tests')))
+    config.add_data_dir(('tests', pjoin(PACKAGE_PATH, 'tests')))
 
     return config
 
@@ -57,9 +63,8 @@ def configuration(parent_package='', top_path=None):
 if __name__ == '__main__':
     from numpy.distutils.core import setup
 
-    setup(configuration = configuration,
-          version       = version,
-          author        = 'Takeshi Kanmae',
-          author_email  = 'tkanmae@gmail.com',
-          keywords      = ['numpy', 'data', 'science'],
-         )
+    setup(configuration    = configuration,
+          version          = __version__,
+          maintainer       = 'Takeshi Kanmae',
+          maintainer_email = 'tkanmae@gmail.com',
+          licence          = 'GNU General Public Licence v2',)

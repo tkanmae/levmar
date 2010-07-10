@@ -8,6 +8,9 @@ from _levmar import (_levmar, LMError, LMRuntimeError, LMUserFuncError,
 import utils
 
 
+__version__ = '0.1.0b1'
+
+
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
            mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
