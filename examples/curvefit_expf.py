@@ -14,7 +14,7 @@ Jacobian.  It takes, at least, one length of m vector and returns the
 None, then the Jacobian will be approximated.
 """
 import numpy as np
-import lvmr
+import levmar
 
 ## If you prefer to reproduce the result, set a seed to the generator.
 # np.random.seed(1234)
@@ -40,7 +40,7 @@ y = yt + 0.2 * np.random.randn(x.size)
 ## Initial estimate
 p0 = [1.0, 0.5, 0.5]
 ## Fitting with analytic Jacobian
-output = lvmr.levmar(expf, p0, y, jacf=jac_expf, args=(x,), full_output=True)
+output = levmar.levmar(expf, p0, y, jacf=jac_expf, args=(x,), full_output=True)
 
 
 ## Print the result

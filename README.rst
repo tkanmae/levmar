@@ -1,5 +1,5 @@
 ======
-PyLVMR
+Levmar
 ======
 
 A Python binding to the levmar library.
@@ -19,7 +19,7 @@ linear inequality constraints).
 Installation
 ============
 
-Building PyLVMR requires the following software installed:
+Building Levmar requires the following software installed:
 
 * Python (>=2.6)
 * NumPy (>=1.3)
@@ -29,7 +29,7 @@ nose is required to execute tests.  Additionally, some of demo scripts
 in ``./examples`` require Scipy (>=0.7) or matplotlib (>=0.99)
 installed.
 
-In order to build PyLVMR, simply do
+In order to build Levmar, simply do
 
     $ python setup.py build
     $ python setup.py install
@@ -39,7 +39,7 @@ Then, verify a successful installation
     $ python -c "import lvmr; lvmr.test()"
 
 
-If you downloaded PyLVMR from a GitHub repository, you need to have
+If you downloaded Levmar from a GitHub repository, you need to have
 Cython (>=0.12) installed.
 
     $ cython -v lvmr/src/_lvmr.pyx
@@ -47,7 +47,7 @@ Cython (>=0.12) installed.
     $ python setup.py install
     $ python -c "import lvmr; lvmr.test()"
 
-If you just want to try PyLVMR without installing it, build it in-place
+If you just want to try Levmar without installing it, build it in-place
 
     $ (cython -v lvmr/src/_lvmr.pyx)
     $ python setup.py build_ext --inplace -f
@@ -76,7 +76,7 @@ The MIT license applies to all the files except those in
 ``./levmar-2.5``.  All of the software in ``./levmar-2.5`` and only the
 software therein is copyrighted by Manolis Lourakis and is licensed
 under the terms and conditions of the GNU General Public License (GPL).
-See the file COPYING.
+See the file LICENSE.txt.
 
 
 Resources

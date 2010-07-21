@@ -372,10 +372,10 @@ cdef inline int set_iter_params(double mu, double eps1, double eps2, double eps3
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def _levmar(func, p0, y, args=(), jacf=None,
-            bounds=None, A=None, b=None, C=None, d=None,
-            double mu=1e-3, double eps1=_LM_EPS1, double eps2=_LM_EPS2,
-            double eps3=_LM_EPS3, int maxit=1000, bint cdif=False):
+def levmar(func, p0, y, args=(), jacf=None,
+           bounds=None, A=None, b=None, C=None, d=None,
+           double mu=1e-3, double eps1=_LM_EPS1, double eps2=_LM_EPS2,
+           double eps3=_LM_EPS3, int maxit=1000, bint cdif=False):
     """
     Parameters
     ----------

@@ -24,7 +24,7 @@ upper bound of 10, and the fourth has to be greater than or equal to 0.
 """
 from math import (log, sqrt, pi,)
 import numpy as np
-import lvmr
+import levmar
 
 ## If you prefer to reproduce the result, set a seed to the generator.
 # np.random.seed(1234)
@@ -47,7 +47,7 @@ p0 = [1.0, -3.0, 3.0, 1.0]
 ## Ensure the width is (0, Inf).
 bounds = [None, None, (1e-6, None), (-10, 10)]
 ## Run fitting routine
-output = lvmr.levmar(gauss, p0, y, args=(x,), bounds=bounds, full_output=True)
+output = levmar.levmar(gauss, p0, y, args=(x,), bounds=bounds, full_output=True)
 
 
 ## Print the result
