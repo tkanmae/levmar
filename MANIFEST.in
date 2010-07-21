@@ -1,4 +1,4 @@
-recursive-include lvmr *.pyx *.pxd
+recursive-include levmar *.pyx *.pxd
 
 recursive-include levmar-2.5 *
 recursive-include examples *.py
