@@ -7,7 +7,7 @@ from __future__ import division
 import numpy as np
 from numpy.testing import *
 
-from lvmr._levmar import _LMLinConstraints
+from levmar._core import _LMLinConstraints
 
 
 def test_valid_list1():

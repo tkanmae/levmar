@@ -3,17 +3,14 @@
 # ----------------------------------------------------------------------
 # Copyright (c) 2010 Takeshi Kanmae
 # ----------------------------------------------------------------------
-from _levmar import (_levmar, LMError, LMRuntimeError, LMUserFuncError,
-                     LMWarning, _LM_EPS1, _LM_EPS2, _LM_EPS3)
+import _core
+from _core import (LMError, LMRuntimeError, LMUserFuncError, LMWarning,)
 import utils
-
-
-__version__ = '0.1.0b1'
 
 
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           mu=1e-3, eps1=_LM_EPS1, eps2=_LM_EPS2, eps3=_LM_EPS3,
+           mu=1e-3, eps1=_core._LM_EPS1, eps2=_core._LM_EPS2, eps3=_core._LM_EPS3,
            maxit=1000, cdif=False, full_output=False):
     """
     Parameters
@@ -98,14 +95,9 @@ def levmar(func, p0, y, args=(), jacf=None,
     --------
     utils.Output
     """
-    p, covr, info =  _levmar(func, p0,  y, args, jacf, bounds,
-                             A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)
+    p, covr, info =  _core.levmar(func, p0,  y, args, jacf, bounds,
+                                  A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)
     if full_output is False:
         return p, covr, info
     else:
         return utils._full_output(func, p, y, args, covr, info)
-
-
-## Add test function to the package.
-from numpy.testing import Tester as __Tester
-test = __Tester().test

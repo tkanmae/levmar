@@ -7,7 +7,7 @@ from __future__ import division
 import numpy as np
 from numpy.testing import *
 
-from lvmr._levmar import (_LMFunction, __py_verify_funcs, LMUserFuncError, )
+from levmar._core import (_LMFunction, __py_verify_funcs, LMUserFuncError, )
 
 
 def test_valid_func1():
