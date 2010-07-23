@@ -87,7 +87,6 @@ Resources
 * levmar: http://www.ics.forth.gr/~lourakis/levmar/
 * Python: http://www.python.org/
 * NumPy: http://www.scipy.org/
-* Scipy: http://www.scipy.org/
 * nose: http://somethingaboutorange.com/mrl/projects/nose
 * Cython: http://www.cython.org/
 

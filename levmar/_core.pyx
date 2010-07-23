@@ -382,10 +382,10 @@ def levmar(func, p0, y, args=(), jacf=None,
     func : callable
         A function or method computing the model function.  It takes, at
         least, one length of m vector and returns a length of n vector.
-    y : array_like, shape (n,)
-        The dependent data, or the observation.
     p0 : array_like, shape (m,)
         The initial estimate of the parameters.
+    y : array_like, shape (n,)
+        The dependent data, or the observation.
     args : tuple, optional
         Extra arguments passed to `func` (and `jacf`).
     jacf : callable, optional
@@ -443,12 +443,10 @@ def levmar(func, p0, y, args=(), jacf=None,
     Notes
     -----
     * Linear equation constraints are specified as A*p=b where A is
-    (k1xm) matrix and b is (k1x1) vector (See comments in
-    src/levmar-2.5/lmlec_core.c).
+    (k1xm) matrix and b is (k1x1) vector.
 
     * Linear *inequality* constraints are defined as C*p>=d where C
-    is (k2xm) matrix and d is (k2x1) vector (See comments in
-    src/levmar-2.5/lmbleic_core.c).
+    is (k2xm) matrix and d is (k2x1) vector.
     """
     cdef:
         ## Make a copy of `p0`
