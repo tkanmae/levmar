@@ -35,21 +35,21 @@ def levmar(func, p0, y, args=(), jacf=None,
         and upper bound, and None means no constraint.  If one of two
         values in a tuple is None, then the bound is semi-definite.
     A : array_like, shape (k1,m), optional
-        A linear equation constraints matrix
+        A linear equation constraints matrix.
     b : array_like, shape (k1,), optional
-        A right-hand linear equation constraint vector
+        A right-hand linear equation constraint vector.
     C : array_like, shape (k2,m), optional
-        A linear *inequality* constraints matrix
+        A linear *inequality* constraints matrix.
     d : array_like, shape (k2,), optional
-        A right-hand linear *inequality* constraint vector
+        A right-hand linear *inequality* constraint vector.
     mu : float, optional
-        The scale factor for initial mu
+        The scale factor for initial mu.
     eps1 : float, optional
-        The stopping threshold for ||J^T e||_inf
+        The stopping threshold for ||J^T e||_inf.
     eps2 : float, optional
-        The stopping threshold for ||Dp||_2
+        The stopping threshold for ||Dp||_2.
     eps3 : float, optional
-        The stopping threshold for ||e||_2
+        The stopping threshold for ||e||_2.
     maxit : int, optional
         The maximum number of iterations.
     cdif : {True, False}, optional
@@ -61,12 +61,12 @@ def levmar(func, p0, y, args=(), jacf=None,
     Returns
     -------
     p : ndarray, shape=(m,)
-        The best-fit parameters
+        The best-fit parameters.
     covr : ndarray, shape=(m,m)
-        The covariance of the best-fit parameters
+        The covariance of the best-fit parameters.
     info : tuple
-        Various information regarding the minimization
-            0: ||e||_2 at `p0`.
+        Various information regarding the minimization.
+            0: ||e||_2 at `p0`
             1:
                 0: 2-norm of e
                 1: infinity-norm of J^T.e

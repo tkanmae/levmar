@@ -26,33 +26,35 @@ Building Levmar requires the following software installed:
 * [optional] nose (>=0.11)
 
 nose is required to execute tests.  Additionally, some of demo scripts
-in ``./examples`` require Scipy (>=0.7) or matplotlib (>=0.99)
-installed.
+in ``./examples`` require matplotlib (>=0.99) installed.
 
-In order to build Levmar, simply do
+In order to build Levmar, simply do::
 
     $ python setup.py build
     $ python setup.py install
 
-Then, verify a successful installation
+Then, verify a successful installation::
 
-    $ python -c "import lvmr; lvmr.test()"
+    $ python -c "import levmar; levmar.test()"
 
 
 If you downloaded Levmar from a GitHub repository, you need to have
 Cython (>=0.12) installed.
 
-    $ cython -v lvmr/src/_lvmr.pyx
+::
+
+    $ cython -v levmar/_core.pyx
     $ python setup.py build
     $ python setup.py install
-    $ python -c "import lvmr; lvmr.test()"
+    $ python -c "import levmar; levmar.test()"
 
-If you just want to try Levmar without installing it, build it in-place
+If you just want to try Levmar without installing it, build it
+in-place::
 
-    $ (cython -v lvmr/src/_lvmr.pyx)
+    $ (cython -v levmar/_core.pyx)
     $ python setup.py build_ext --inplace -f
     [Set up PYTHONPATH appropriately]
-    $ python -c "import lvmr; lvmr.test()"
+    $ python -c "import levmar; levmar.test()"
 
 
 Documentation

@@ -6,7 +6,7 @@
 from core import (levmar, LMError, LMRuntimeError, LMUserFuncError, LMWarning,)
 
 
-__version__ = '0.1.0dev'
+__version__ = '0.1.0'
 
 
 ## Add test function to the package.

@@ -56,7 +56,7 @@ if __name__ == '__main__':
     from numpy.distutils.core import setup
 
     setup(configuration    = configuration,
-          version          = '0.1.0dev',
+          version          = '0.1.0',
           maintainer       = 'Takeshi Kanmae',
           maintainer_email = 'tkanmae@gmail.com',
           licence          = 'GNU General Public Licence v2',)
