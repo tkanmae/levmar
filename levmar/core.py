@@ -54,7 +54,7 @@ class Output(_Output):
     pprint()
         Print a summary of the fit.
     """
-    __slots__ =()
+    __slots__ = []
     def pprint(self, file=sys.stdout):
         """
         Parameters
@@ -90,7 +90,7 @@ class Output(_Output):
         return s
 
 
-def __full_output(func, p, y, args, covr, info):
+def _full_output(func, p, y, args, covr, info):
     """
     Parameters
     ----------
@@ -215,4 +215,4 @@ def levmar(func, p0, y, args=(), jacf=None,
     if full_output is False:
         return p, covr, info
     else:
-        return __full_output(func, p, y, args, covr, info)
+        return _full_output(func, p, y, args, covr, info)
