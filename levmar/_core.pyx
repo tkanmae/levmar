@@ -492,8 +492,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                         maxit, opts, info, work,
                         <double*>covr.data, <void*>lm_func)
                 else:
-                    work = _LMWork.allocate(
-                        LM_BLEIC_DIF_WORKSZ(m, n, lec.k, lic.k) * sizeof(double))
+                    work = _LMWork.allocate( LM_BLEIC_DIF_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_bleic_dif(
                         callback_func,
                         <double*>p.data, <double*>x.data, m, n,
@@ -608,8 +607,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                 maxit, opts, info, work,
                 <double*>covr.data, <void*>lm_func)
         else:
-            work = _LMWork.allocate(
-                LM_BC_DIF_WORKSZ(m, n) * sizeof(double))
+            work = _LMWork.allocate(LM_BC_DIF_WORKSZ(m, n))
             niter = dlevmar_bc_dif(
                 callback_func,
                 <double*>p.data, <double*>x.data, m, n,
