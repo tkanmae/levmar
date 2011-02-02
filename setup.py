@@ -35,18 +35,18 @@ def configuration(parent_package='', top_path=None):
                            top_path,
                            package_path=PACKAGE_PATH)
 
-    ## Add `levmar` C library
+    # Add `levmar` C library.
     config.add_library('levmar',
                        sources=get_library_sources())
 
-    ## Add `levmar` extension module.
+    # Add `levmar` extension module.
     config.add_extension('_core',
                          sources=get_extension_sources(),
                          include_dirs=get_extension_include_dirs(),
                          libraries=['levmar'],
                          extra_info=get_info('lapack_opt'),)
 
-    ## Add `tests` directory.
+    # Add `tests` directory.
     config.add_data_dir(('tests', os.path.join(PACKAGE_PATH, 'tests')))
 
     return config

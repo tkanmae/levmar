@@ -63,7 +63,7 @@ class Output(_Output):
             An object with `write()` method
         """
         p = partial(print, file=file)
-        ## Print summary of the fitting
+        # Print the fitting summary.
         p("degree of freedom: {0}".format(self.ndf))
         p("iterations: {0}".format(self.info[2]))
         p("reason for stop: {0}".format(self.info[3]))
@@ -112,15 +112,15 @@ def _full_output(func, p, y, args, covr, info):
     output : Output
         An `Output` object
     """
-    ## The number of the iterations
+    # The number of the iterations
     niter = info[2]
-    ## The number of the degrees of freedom
+    # The number of the degrees of freedom
     ndf = y.size - p.size
-    ## The standard deviation in the best-fit parameters
+    # The standard deviation in the best-fit parameters
     p_stdv = np.sqrt(np.diag(covr))
-    ## The correlation coefficients of the best-fit parameters
+    # The correlation coefficients of the best-fit parameters
     corr = np.corrcoef(covr)
-    ## The coefficient of determination
+    # The coefficient of determination
     r2 = 1 - np.sum((y-func(p, *args))**2) / np.sum((y-y.mean())**2)
     return Output(p, p_stdv, covr, corr, r2, niter, ndf, info)
 
@@ -208,7 +208,7 @@ def levmar(func, p0, y, args=(), jacf=None,
 
     See Also
     --------
-    utils.Output
+    core.Output
     """
     p, covr, info =  _core.levmar(func, p0,  y, args, jacf, bounds,
                                   A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)

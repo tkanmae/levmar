@@ -39,7 +39,7 @@ Then, verify a successful installation::
 
 
 If you downloaded Levmar from a GitHub repository, you need to have
-Cython (>=0.12) installed.
+Cython (>=0.13) installed.
 
 ::
 

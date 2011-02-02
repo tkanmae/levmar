@@ -51,11 +51,11 @@ _LM_STOP_REASONS = {
 
 _LM_STOP_REASONS_WARNED = (3, 4, 5)
 
-## The stopping threshold for ||J^T e||_inf
+# The stopping threshold for ||J^T e||_inf
 _LM_EPS1 = DBL_EPSILON**(1/2)
-## The stopping threshold for ||Dp||_2
+# The stopping threshold for ||Dp||_2
 _LM_EPS2 = DBL_EPSILON**(1/2)
-## The stopping threshold for ||e||_2
+# The stopping threshold for ||e||_2
 _LM_EPS3 = DBL_EPSILON**(1/2)
 
 
@@ -111,7 +111,7 @@ cdef class _LMFunction:
 
         args = PySequence_Concat((py_p,), self.args)
         py_y = PyObject_CallObject(self.func, args)
-        ## Copy the result to `x`
+        # Copy the result to `x`
         memcpy(y, py_y.data, n*sizeof(double))
 
     cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
@@ -122,7 +122,7 @@ cdef class _LMFunction:
 
         args = PySequence_Concat((py_p,), self.args)
         py_jacf = PyObject_CallObject(self.jacf, args)
-        ## Copy the result to `jacf`
+        # Copy the result to `jacf`
         memcpy(jacf, py_jacf.data, m*n*sizeof(double))
 
     cdef int _check_funcs(self, ndarray p, int m, int n) except -1:
@@ -147,12 +147,12 @@ cdef class _LMFunction:
                 msg = ("`jacf` returned a invalid size vector: "
                        "{0} expected but {1} returned".format(m*n, size))
                 raise LMUserFuncError(msg)
-            if not self.__check_jacf(<double*>p.data, m, n):
+            if not self._check_jacf(<double*>p.data, m, n):
                 msg = "`jacf` may not be correct"
                 warnings.warn(msg, LMWarning)
         return 1
 
-    cdef bint __check_jacf(self, double *p, int m, int n):
+    cdef bint _check_jacf(self, double *p, int m, int n):
         cdef:
             bint is_jacf_correct = True
             double *err = NULL
@@ -201,9 +201,9 @@ cdef class _LMWorkSpace:
             free(self.ptr)
 
 
-## This global variable holds a working array used internally in the
-## levmar library.  The necessarily size of the array depends on
-## specification of problems.
+# This global variable holds a working array used internally in the
+# levmar library.  The necessarily size of the array depends on
+# specification of problems.
 cdef _LMWorkSpace _LMWork = _LMWorkSpace()
 
 
@@ -243,9 +243,9 @@ cdef class _LMBoxConstraints(_LMConstraints):
             msg = ("`bounds` must be length of {0} ({1} is given)"
                    .format(m, len(bounds)))
             raise ValueError(msg)
-        ## Obviously, a lower bound cannot be larger than a upper bound.
-        ## Since the levmar library returns LM_ERROR when the requirement
-        ## is not satisfied, the requirement is not checked here.
+        # Obviously, a lower bound cannot be larger than a upper bound.
+        # Since the levmar library returns LM_ERROR when the requirement
+        # is not satisfied, the requirement is not checked here.
         for i, b in enumerate(bounds):
             if isinstance(b, tuple):
                 if len(b) == 2:
@@ -296,10 +296,10 @@ cdef class _LMLinConstraints(_LMConstraints):
             Py_ssize_t size1 = PyArray_SIZE(A)
             Py_ssize_t size2 = PyArray_SIZE(b)
             Py_ssize_t k
-        ## In case of linear equation constraints, obviously a constraint
-        ## matrix cannot have more rows than columns for solving a problems.
-        ## Since the levmar library returns LM_ERROR when this requirement
-        ## is not satisfied, the requirement is not checked here.
+        # In case of linear equation constraints, obviously a constraint
+        # matrix cannot have more rows than columns for solving a problems.
+        # Since the levmar library returns LM_ERROR when this requirement
+        # is not satisfied, the requirement is not checked here.
         if A.ndim == 2:
             if A.shape[1] != m :
                 raise ValueError("The shape of the constraint matrix must be "
@@ -308,7 +308,7 @@ cdef class _LMLinConstraints(_LMConstraints):
             if size1 % m != 0:
                 raise ValueError("The shape of the constraint matrix must be "
                                  "(kx{0})".format(m))
-        ## the number of equations/inequalities
+        # the number of equations/inequalities
         k = size1 // m
 
         if size2 != k:
@@ -335,18 +335,18 @@ cdef class _LMLinConstraints(_LMConstraints):
 
 cdef object py_info(double *c_info):
     info = (
-        c_info[0],        # ||e||_2 at `p0`
+        c_info[0],       # ||e||_2 at `p0`
         (
-            c_info[1],    # ||e||_2 at `p`
-            c_info[2],    # ||J^T.e||_inf
-            c_info[3],    # ||Dp||_2
-            c_info[4],    # mu / max[J^T.J]_ii
+            c_info[1],   # ||e||_2 at `p`
+            c_info[2],   # ||J^T.e||_inf
+            c_info[3],   # ||Dp||_2
+            c_info[4],   # mu / max[J^T.J]_ii
         ),
-        <int>c_info[5],   # number of iterations
+        <int>c_info[5],  # number of iterations
         _LM_STOP_REASONS[<int>c_info[6]],  # reason for terminating
-        <int>c_info[7],   # number of `func` evaluations
-        <int>c_info[8],   # number of `jacf` evaluations
-        <int>c_info[9],   # number of linear system solved
+        <int>c_info[7],  # number of `func` evaluations
+        <int>c_info[8],  # number of `jacf` evaluations
+        <int>c_info[9],  # number of linear system solved
     )
     return info
 
@@ -449,7 +449,7 @@ def levmar(func, p0, y, args=(), jacf=None,
     is (k2xm) matrix and d is (k2x1) vector.
     """
     cdef:
-        ## Make a copy of `p0`
+        # Make a copy of `p0`
         ndarray p = PyArray_FROMANY(p0, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
         ndarray x = PyArray_ContiguousFromAny(y, NPY_DOUBLE, 1, 1)
 
@@ -460,19 +460,19 @@ def levmar(func, p0, y, args=(), jacf=None,
         double* work = NULL
 
         _LMFunction lm_func
-        ## Box constraints
+        # Box constraints
         _LMBoxConstraints bc
-        ## Linear equation/inequality constraints
+        # Linear equation/inequality constraints
         _LMLinConstraints lec, lic
-        ## Output
+        # Output
         int niter = 0
         npy_intp* dims = [m,m]
         ndarray covr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
 
-    ## Set the functions and their extra arguments, and verify them.
+    # Set the functions and their extra arguments, and verify them.
     lm_func = _LMFunction(func, args, jacf)
     verify_funcs(lm_func, p, m, n)
-    ## Set the iteration parameters: `opts` and `maxit`
+    # Set the iteration parameters: `opts` and `maxit`
     set_iter_params(mu, eps1, eps2, eps3, maxit, cdif, opts)
 
     if C is not None:
@@ -480,7 +480,7 @@ def levmar(func, p0, y, args=(), jacf=None,
         if A is not None:
             lec = _LMLinConstraints(A, b, m)
             if bounds is not None:
-                ## Box, linear equations & inequalities constrained minimization
+                # Box, linear equations & inequalities constrained minimization
                 bc = _LMBoxConstraints(bounds, m)
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, lec.k, lic.k))
@@ -501,7 +501,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                         maxit, opts, info, work,
                         <double*>covr.data, <void*>lm_func)
             else:
-                ## Linear equation & inequality constraints
+                # Linear equation & inequality constraints
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, lec.k, lic.k))
                     niter = dlevmar_leic_der(
@@ -520,7 +520,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                         <double*>covr.data, <void*>lm_func)
         else:
             if bounds is not None:
-                ## Box & linear inequality constraints
+                # Box & linear inequality constraints
                 bc = _LMBoxConstraints(bounds, m)
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, 0, lic.k))
@@ -539,7 +539,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                         maxit, opts, info, work,
                         <double*>covr.data, <void*>lm_func)
             else:
-                ## Linear inequality constraints
+                # Linear inequality constraints
                 if jacf is not None:
                     work = _LMWork.allocate(LM_BLEIC_DER_WORKSZ(m, n, 0, lic.k))
                     niter = dlevmar_lic_der(
@@ -559,7 +559,7 @@ def levmar(func, p0, y, args=(), jacf=None,
     elif A is not None:
         lec = _LMLinConstraints(A, b, m)
         if bounds is not None:
-            ## Box & linear equation constrained minimization
+            # Box & linear equation constrained minimization
             bc = _LMBoxConstraints(bounds, m)
             if jacf is not None:
                 work = _LMWork.allocate(LM_BLEC_DER_WORKSZ(m, n, lec.k))
@@ -578,7 +578,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                     maxit, opts, info, work,
                     <double*>covr.data, <void*>lm_func)
         else:
-            ## Linear equation constrained minimization
+            # Linear equation constrained minimization
             if jacf is not None:
                 work = _LMWork.allocate(LM_LEC_DER_WORKSZ(m, n, lec.k))
                 niter = dlevmar_lec_der(
@@ -596,7 +596,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                     maxit, opts, info, work,
                     <double*>covr.data, <void*>lm_func)
     elif bounds is not None:
-        ## Box-constrained minimization
+        # Box-constrained minimization
         bc = _LMBoxConstraints(bounds, m)
         if jacf is not None:
             work = _LMWork.allocate(LM_BC_DER_WORKSZ(m, n))
@@ -615,7 +615,7 @@ def levmar(func, p0, y, args=(), jacf=None,
                 maxit, opts, info, work,
                 <double*>covr.data, <void*>lm_func)
     else:
-        ## Unconstrained minimization
+        # Unconstrained minimization
         if jacf is not None:
             work = _LMWork.allocate(LM_DER_WORKSZ(m, n))
             niter = dlevmar_der(
@@ -631,7 +631,7 @@ def levmar(func, p0, y, args=(), jacf=None,
 
     reason_id = <int>info[6]
     if reason_id in _LM_STOP_REASONS_WARNED:
-        ## Issue warning for unsuccessful termination.
+        # Issue warning for unsuccessful termination.
         warnings.warn(_LM_STOP_REASONS[reason_id], LMWarning)
     if niter == LM_ERROR:
         if reason_id == 7:

@@ -7,7 +7,7 @@
 
 Curve fitting with a exponential function.
 
-A keyword parameter `jacf` passed to `lvmr.levmar()` specifies the
+A keyword parameter `jacf` passed to `levmar.levmar()` specifies the
 Jacobian of `func`.  `jacf` must be a function or method computing the
 Jacobian.  It takes, at least, one length of m vector and returns the
 (nxm) Jacobian matrix or a compatible C-contiguous vector.  If `jacf` is
@@ -16,7 +16,7 @@ None, then the Jacobian will be approximated.
 import numpy as np
 import levmar
 
-## If you prefer to reproduce the result, set a seed to the generator.
+# If you prefer repeatable result, set a seed to the generator.
 # np.random.seed(1234)
 
 def expf(p, x):
@@ -31,19 +31,19 @@ def jac_expf(p, x):
     return jac
 
 
-## Create input data
+# Create input data
 x = np.arange(40, dtype=np.float64)
 pt = [5.0, 0.1, 1.0]
 yt = expf(pt, x)
 y = yt + 0.2 * np.random.randn(x.size)
 
-## Initial estimate
+# Initial estimate
 p0 = [1.0, 0.5, 0.5]
-## Fitting with analytic Jacobian
+# Fitting with analytic Jacobian
 output = levmar.levmar(expf, p0, y, jacf=jac_expf, args=(x,), full_output=True)
 
 
-## Print the result
+# Print the result
 print(":Expected:")
 print("{0[0]:9f} {0[1]:9f} {0[2]:9f}".format(pt))
 print(":Estimate:")
@@ -55,9 +55,9 @@ output.pprint()
 print(''.center(60, '*'))
 
 
-## Plot the result
+# Plot the result
 try:
-    from matplotlib import pyplot as plt
+    import matplotlib.pyplot as plt
 
     plt.plot(x, y, 'bo')
     plt.plot(x, yt, 'b-', label='true')
