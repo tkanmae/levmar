@@ -59,4 +59,4 @@ if __name__ == '__main__':
           version          = '0.1.0',
           maintainer       = 'Takeshi Kanmae',
           maintainer_email = 'tkanmae@gmail.com',
-          licence          = 'GNU General Public Licence v2',)
+          license          = 'GNU General Public Licence v2',)
