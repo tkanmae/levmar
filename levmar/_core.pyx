@@ -105,8 +105,8 @@ cdef class _LMFunction:
 
     cdef void eval_func(self, double *p, double *y, int m, int n):
         cdef:
-            object py_p = \
-               PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
+            npy_intp m_ = m
+            object py_p = PyArray_SimpleNewFromData(1, &m_, NPY_DOUBLE, <void*>p)
             ndarray py_y
 
         args = PySequence_Concat((py_p,), self.args)
@@ -116,8 +116,8 @@ cdef class _LMFunction:
 
     cdef void eval_jacf(self, double *p, double *jacf, int m, int n):
         cdef:
-            object py_p = \
-               PyArray_SimpleNewFromData(1, <npy_intp*>&m, NPY_DOUBLE, <void*>p)
+            npy_intp m_ = m
+            object py_p = PyArray_SimpleNewFromData(1, &m_, NPY_DOUBLE, <void*>p)
             ndarray py_jacf
 
         args = PySequence_Concat((py_p,), self.args)
@@ -466,7 +466,7 @@ def levmar(func, p0, y, args=(), jacf=None,
         _LMLinConstraints lec, lic
         # Output
         int niter = 0
-        npy_intp* dims = [m,m]
+        npy_intp* dims = [m, m]
         ndarray covr = PyArray_ZEROS(2, dims, NPY_DOUBLE, 0)
 
     # Set the functions and their extra arguments, and verify them.
