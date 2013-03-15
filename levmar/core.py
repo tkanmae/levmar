@@ -9,7 +9,6 @@ from cStringIO import StringIO
 import numpy as np
 
 import _levmar
-from _levmar import (LMError, LMRuntimeError, LMUserFuncError, LMWarning,)
 
 
 _Output = namedtuple('Ouput', 'p, p_stdv, covr, corr, r2, niter, ndf, info')

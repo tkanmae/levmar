@@ -4,7 +4,7 @@ from __future__ import division
 import numpy as np
 from numpy.testing import *
 
-from levmar._levmar import (_LMFunction, __py_verify_funcs, LMUserFuncError, )
+from levmar._levmar import (_LMFunction, __py_verify_funcs)
 
 
 def test_valid_func1():
@@ -67,7 +67,7 @@ def test_func_not_callable():
     func = []
 
     lm_func = _LMFunction(func, args=(x,))
-    assert_raises(LMUserFuncError, __py_verify_funcs, lm_func, p, m, n)
+    assert_raises(RuntimeError, __py_verify_funcs, lm_func, p, m, n)
 
 
 def test_func_invalid_args_given():
@@ -77,7 +77,7 @@ def test_func_invalid_args_given():
     func = lambda p, x : p[0]*np.exp(-p[1]*x) + p[2]
 
     lm_func = _LMFunction(func, args=())
-    assert_raises(LMUserFuncError, __py_verify_funcs, lm_func, p, m, n)
+    assert_raises(RuntimeError, __py_verify_funcs, lm_func, p, m, n)
 
 
 def test_func_returns_invalid_size():
@@ -87,7 +87,7 @@ def test_func_returns_invalid_size():
     func = lambda p, x : p[0]*np.exp(-p[1]*x) + p[2]
 
     lm_func = _LMFunction(func, args=(x,))
-    assert_raises(LMUserFuncError, __py_verify_funcs, lm_func, p, m, n+1)
+    assert_raises(RuntimeError, __py_verify_funcs, lm_func, p, m, n+1)
 
 
 def test_jacf_returns_invalid_size():
@@ -102,4 +102,4 @@ def test_jacf_returns_invalid_size():
         return y
 
     lm_func = _LMFunction(func, args=(x,),  jacf=jacf)
-    assert_raises(LMUserFuncError, __py_verify_funcs, lm_func, p, m, n)
+    assert_raises(RuntimeError, __py_verify_funcs, lm_func, p, m, n)

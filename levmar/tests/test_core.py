@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import *
 from numpy import (arange, asarray, empty, float64, zeros)
 
-from levmar._levmar import (levmar, LMUserFuncError)
+from levmar._levmar import levmar
 
 
 OPTS = dict(eps1=1e-15, eps2=1e-15, eps3=1e-20)

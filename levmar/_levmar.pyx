@@ -53,19 +53,6 @@ _LM_EPS2 = DBL_EPSILON**(1/2)
 _LM_EPS3 = DBL_EPSILON**(1/2)
 
 
-class LMError(Exception):
-    pass
-
-class LMRuntimeError(LMError, RuntimeError):
-    pass
-
-class LMUserFuncError(LMError):
-    pass
-
-class LMWarning(UserWarning):
-    pass
-
-
 cdef class _LMFunction:
     """
     Parameters
@@ -126,24 +113,24 @@ cdef class _LMFunction:
             ret = self.func(*args)
             size = PyArray_SIZE(ret)
         except Exception, e:
-            raise LMUserFuncError(e)
+            raise RuntimeError(e)
         if size != n:
             msg = ("`func` returned a invalid size vector: "
                    "{0} expected but {1} returned".format(n, size))
-            raise LMUserFuncError(msg)
+            raise RuntimeError(msg)
         if self.jacf is not None:
             try:
                 ret = self.jacf(*args)
                 size = PyArray_SIZE(ret)
             except Exception, e:
-                raise LMUserFuncError(e)
+                raise RuntimeError(e)
             if size != m*n:
                 msg = ("`jacf` returned a invalid size vector: "
                        "{0} expected but {1} returned".format(m*n, size))
-                raise LMUserFuncError(msg)
+                raise RuntimeError(msg)
             if not self._check_jacf(<double*>p.data, m, n):
                 msg = "`jacf` may not be correct"
-                warnings.warn(msg, LMWarning)
+                warnings.warn(msg, UserWarning)
         return 1
 
     cdef bint _check_jacf(self, double *p, int m, int n):
@@ -626,13 +613,13 @@ def levmar(func, p0, y, args=(), jacf=None,
     reason_id = <int>info[6]
     if reason_id in _LM_STOP_REASONS_WARNED:
         # Issue warning for unsuccessful termination.
-        warnings.warn(_LM_STOP_REASONS[reason_id], LMWarning)
+        warnings.warn(_LM_STOP_REASONS[reason_id], UserWarning)
     if niter == LM_ERROR:
         if reason_id == 7:
-            raise LMUserFuncError(
+            raise RuntimeError(
                 "Stopped by invalid values (NaN or Inf) returned by `func`")
         else:
-            raise LMRuntimeError
+            raise RuntimeError
 
     return p, covr, py_info(info)
 
