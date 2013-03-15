@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from core import (levmar, Output)
+from core import levmar
 
 
 __version__ = '0.1.0'
