@@ -1,17 +1,15 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 from __future__ import division, print_function
+
 import sys
 from functools import partial
 from collections import namedtuple
 from cStringIO import StringIO
 import numpy as np
 
-import _core
-from _core import (LMError, LMRuntimeError, LMUserFuncError, LMWarning,)
+import _levmar
+from _levmar import (LMError, LMRuntimeError, LMUserFuncError, LMWarning,)
 
 
 _Output = namedtuple('Ouput', 'p, p_stdv, covr, corr, r2, niter, ndf, info')
@@ -127,7 +125,7 @@ def _full_output(func, p, y, args, covr, info):
 
 def levmar(func, p0, y, args=(), jacf=None,
            bounds=None, A=None, b=None, C=None, d=None,
-           mu=1e-3, eps1=_core._LM_EPS1, eps2=_core._LM_EPS2, eps3=_core._LM_EPS3,
+           mu=1e-3, eps1=_levmar._LM_EPS1, eps2=_levmar._LM_EPS2, eps3=_levmar._LM_EPS3,
            maxit=1000, cdif=False, full_output=False):
     """
     Parameters
@@ -210,8 +208,8 @@ def levmar(func, p0, y, args=(), jacf=None,
     --------
     core.Output
     """
-    p, covr, info =  _core.levmar(func, p0,  y, args, jacf, bounds,
-                                  A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)
+    p, covr, info =  _levmar.levmar(func, p0,  y, args, jacf, bounds,
+                                    A, b, C, d, mu, eps1, eps2, eps3, maxit, cdif)
     if full_output is False:
         return p, covr, info
     else:

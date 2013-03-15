@@ -1,15 +1,12 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 from __future__ import division
 from math import (atan, pi, sqrt)
 import numpy as np
 from numpy.testing import *
 from numpy import (arange, asarray, empty, float64, zeros)
 
-from levmar._core import (levmar, LMUserFuncError)
+from levmar._levmar import (levmar, LMUserFuncError)
 
 
 OPTS = dict(eps1=1e-15, eps2=1e-15, eps3=1e-20)

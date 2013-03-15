@@ -1,8 +1,5 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 import os
 
 
@@ -11,7 +8,7 @@ LIBRARY_DIR = 'levmar-2.5'
 
 
 def get_extension_sources():
-    src = ('_core.c',)
+    src = ('_levmar.c',)
     return [os.path.join(PACKAGE_PATH, f) for f in src]
 
 
@@ -40,7 +37,7 @@ def configuration(parent_package='', top_path=None):
                        sources=get_library_sources())
 
     # Add `levmar` extension module.
-    config.add_extension('_core',
+    config.add_extension('_levmar',
                          sources=get_extension_sources(),
                          include_dirs=get_extension_include_dirs(),
                          libraries=['levmar'],

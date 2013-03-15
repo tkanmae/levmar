@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
-"""
-TODO:
-    * Implement a weighted least square method.
-"""
 from __future__ import division
+
 cimport cython
 from numpy cimport *
 import warnings

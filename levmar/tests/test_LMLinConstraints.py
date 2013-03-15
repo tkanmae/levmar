@@ -1,13 +1,10 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 from __future__ import division
 import numpy as np
 from numpy.testing import *
 
-from levmar._core import _LMLinConstraints
+from levmar._levmar import _LMLinConstraints
 
 
 def test_valid_list1():

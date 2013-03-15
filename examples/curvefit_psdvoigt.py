@@ -1,8 +1,5 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 """Demonstration of use of box constraints.
 
 Curve fitting with a psuedo-Voigt function.
