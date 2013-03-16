@@ -294,13 +294,13 @@ def levmar_bc(func, p, x, bc, args, jacf,
         niter = dlevmar_bc_der(
             callback_func, callback_jacf,
             <double*>p_.data, <double*>x_.data, m, n,
-            <double*>lb.data, <double*>ub.data,
+            <double*>lb.data, <double*>ub.data, NULL,
             maxit, c_opts, c_info, NULL, <double*>pcov.data, <void*>lm_func)
     else:
         niter = dlevmar_bc_dif(
             callback_func,
             <double*>p_.data, <double*>x_.data, m, n,
-            <double*>lb.data, <double*>ub.data,
+            <double*>lb.data, <double*>ub.data, NULL,
             maxit, c_opts, c_info, NULL, <double*>pcov.data, <void*>lm_func)
 
     if niter == LM_ERROR:

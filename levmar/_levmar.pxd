@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
 
 cdef extern from "levmar.h":
     enum:
@@ -52,12 +49,12 @@ cdef extern from "levmar.h":
     int dlevmar_bc_der(
         void (*func)(double *p, double *hx, int m, int n, void *adata),
         void (*jacf)(double *p, double *j, int m, int n, void *adata),
-        double *p, double *x, int m, int n, double *lb, double *ub,
+        double *p, double *x, int m, int n, double *lb, double *ub, double *dscl,
         int itmax, double *opts, double *info, double *work, double *covar, void *adata)
 
     int dlevmar_bc_dif(
         void (*func)(double *p, double *hx, int m, int n, void *adata),
-        double *p, double *x, int m, int n, double *lb, double *ub,
+        double *p, double *x, int m, int n, double *lb, double *ub, double *dscl,
         int itmax, double *opts, double *info, double *work, double *covar, void *adata)
 
     # Linear equation constrained minimization
