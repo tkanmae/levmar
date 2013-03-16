@@ -1,5 +1,5 @@
 ======
-Levmar
+levmar
 ======
 
 A Python binding to the levmar library.
@@ -25,10 +25,9 @@ Building Levmar requires the following software installed:
 * NumPy (>=1.3)
 * [optional] nose (>=0.11)
 
-nose is required to execute tests.  Additionally, some of demo scripts
-in ``./examples`` require matplotlib (>=0.99) installed.
+nose is required to execute tests.
 
-In order to build Levmar, simply do::
+In order to build levmar, simply do::
 
     $ python setup.py build
     $ python setup.py install
@@ -39,11 +38,11 @@ Then, verify a successful installation::
 
 
 If you downloaded Levmar from a GitHub repository, you need to have
-Cython (>=0.12) installed.
+Cython (>=0.13) installed.
 
 ::
 
-    $ cython -v levmar/_core.pyx
+    $ cython -v levmar/_levmar.pyx
     $ python setup.py build
     $ python setup.py install
     $ python -c "import levmar; levmar.test()"
@@ -51,7 +50,7 @@ Cython (>=0.12) installed.
 If you just want to try Levmar without installing it, build it
 in-place::
 
-    $ (cython -v levmar/_core.pyx)
+    $ (cython -v levmar/_levmar.pyx)
     $ python setup.py build_ext --inplace -f
     [Set up PYTHONPATH appropriately]
     $ python -c "import levmar; levmar.test()"
@@ -75,7 +74,7 @@ License
 =======
 
 The MIT license applies to all the files except those in
-``./levmar-2.5``.  All of the software in ``./levmar-2.5`` and only the
+``./levmar-2.6``.  All of the software in ``./levmar-2.6`` and only the
 software therein is copyrighted by Manolis Lourakis and is licensed
 under the terms and conditions of the GNU General Public License (GPL).
 See the file LICENSE.txt.

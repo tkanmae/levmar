@@ -6,7 +6,7 @@
 CC=gcc
 CONFIGFLAGS=#-ULINSOLVERS_RETAIN_MEMORY
 #ARCHFLAGS=-march=pentium4 # YOU MIGHT WANT TO UNCOMMENT THIS FOR P4
-CFLAGS=$(CONFIGFLAGS) $(ARCHFLAGS) -O3 -funroll-loops -Wall #-ffast-math #-pg
+CFLAGS=$(CONFIGFLAGS) $(ARCHFLAGS) -O3 -funroll-loops -Wall #-g #-ffast-math #-pg
 LAPACKLIBS_PATH=/usr/local/lib # WHEN USING LAPACK, CHANGE THIS TO WHERE YOUR COMPILED LIBS ARE!
 LDFLAGS=-L$(LAPACKLIBS_PATH) -L.
 LIBOBJS=lm.o Axb.o misc.o lmlec.o lmbc.o lmblec.o lmbleic.o
@@ -27,6 +27,8 @@ LAPACKLIBS=-llapack -lblas -lf2c # comment this line if you are not using LAPACK
 
 #LAPACKLIBS=-L/opt/intel/mkl/8.0.1/lib/32/ -lmkl_lapack -lmkl_ia32 -lguide -lf2c # This works with MKL 8.0.1 from
                                             # http://www.intel.com/cd/software/products/asmo-na/eng/perflib/mkl/index.htm
+                                            # check the MKL link line advisor for more information:
+                                            # http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/
 
 LIBS=$(LAPACKLIBS)
 
