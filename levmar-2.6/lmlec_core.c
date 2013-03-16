@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Levenberg - Marquardt non-linear minimization algorithm
 //  Copyright (C) 2004-05  Manolis Lourakis (lourakis at ics forth gr)
 //  Institute of Computer Science, Foundation for Research & Technology - Hellas
@@ -293,7 +293,7 @@ struct LMLEC_DATA *data=(struct LMLEC_DATA *)adata;
 int m;
 register int i, j, l;
 register LM_REAL sum, *aux1, *aux2;
-LM_REAL *c, *Z, *p, *jac; 
+LM_REAL *c, *Z, *p, *jac;
 
   m=mm+data->ncnstr;
   c=data->c;
@@ -362,7 +362,7 @@ LM_REAL *c, *Z, *p, *jac;
 #undef __MIN__
 
 
-/* 
+/*
  * This function is similar to LEVMAR_DER except that the minimization
  * is performed subject to the linear constraints A p=b, A is kxm, b kx1
  *
@@ -372,7 +372,7 @@ LM_REAL *c, *Z, *p, *jac;
  */
 int LEVMAR_LEC_DER(
   void (*func)(LM_REAL *p, LM_REAL *hx, int m, int n, void *adata), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-  void (*jacf)(LM_REAL *p, LM_REAL *j, int m, int n, void *adata),  /* function to evaluate the Jacobian \part x / \part p */ 
+  void (*jacf)(LM_REAL *p, LM_REAL *j, int m, int n, void *adata),  /* function to evaluate the Jacobian \part x / \part p */
   LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
   LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
   int m,              /* I: parameter vector dimension (i.e. #unknowns) */
@@ -392,7 +392,7 @@ int LEVMAR_LEC_DER(
                       * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
                       *                                 2 - stopped by small Dp
                       *                                 3 - stopped by itmax
-                      *                                 4 - singular matrix. Restart from current p with increased mu 
+                      *                                 4 - singular matrix. Restart from current p with increased mu
                       *                                 5 - no further error reduction is possible. Restart with increased mu
                       *                                 6 - stopped by small ||e||_2
                       *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
@@ -469,9 +469,11 @@ int LEVMAR_LEC_DER(
     Zimm=Z+i*mm;
     for(j=0, tmp=data.c[i]; j<mm; ++j)
       tmp+=Zimm[j]*pp[j]; // tmp+=Z[i*mm+j]*pp[j];
-    if(FABS(tmp-p0[i])>LM_CNST(1E-03))
-      fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_LEC_DER) "()! [%.10g reset to %.10g]\n",
-                      i, p0[i], tmp);
+    /*
+     * if(FABS(tmp-p0[i])>LM_CNST(1E-03))
+     *   fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_LEC_DER) "()! [%.10g reset to %.10g]\n",
+     *                   i, p0[i], tmp);
+     */
   }
 
   if(!info) info=locinfo; /* make sure that LEVMAR_DER() is called with non-null info */
@@ -514,7 +516,7 @@ int LEVMAR_LEC_DIF(
                        * scale factor for initial \mu, stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2 and
                        * the step used in difference approximation to the Jacobian. Set to NULL for defaults to be used.
                        * If \delta<0, the Jacobian is approximated with central differences which are more accurate
-                       * (but slower!) compared to the forward differences employed by default. 
+                       * (but slower!) compared to the forward differences employed by default.
                        */
   LM_REAL info[LM_INFO_SZ],
 					           /* O: information regarding the minimization. Set to NULL if don't care
@@ -524,7 +526,7 @@ int LEVMAR_LEC_DIF(
                       * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
                       *                                 2 - stopped by small Dp
                       *                                 3 - stopped by itmax
-                      *                                 4 - singular matrix. Restart from current p with increased mu 
+                      *                                 4 - singular matrix. Restart from current p with increased mu
                       *                                 5 - no further error reduction is possible. Restart with increased mu
                       *                                 6 - stopped by small ||e||_2
                       *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
@@ -595,9 +597,11 @@ int LEVMAR_LEC_DIF(
     Zimm=Z+i*mm;
     for(j=0, tmp=data.c[i]; j<mm; ++j)
       tmp+=Zimm[j]*pp[j]; // tmp+=Z[i*mm+j]*pp[j];
-    if(FABS(tmp-p0[i])>LM_CNST(1E-03))
-      fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_LEC_DIF) "()! [%.10g reset to %.10g]\n",
-                      i, p0[i], tmp);
+    /*
+     * if(FABS(tmp-p0[i])>LM_CNST(1E-03))
+     *   fprintf(stderr, RCAT("Warning: component %d of starting point not feasible in ", LEVMAR_LEC_DIF) "()! [%.10g reset to %.10g]\n",
+     *                   i, p0[i], tmp);
+     */
   }
 
   if(!info) info=locinfo; /* make sure that LEVMAR_DIF() is called with non-null info */
