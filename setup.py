@@ -1,62 +1,48 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------
-# Copyright (c) 2010 Takeshi Kanmae
-# ----------------------------------------------------------------------
-import os
+from setuptools import setup
+from distutils.extension import Extension
+import numpy as np
+from numpy.distutils.system_info import get_info
 
 
-PACKAGE_PATH = 'levmar'
-LIBRARY_DIR = 'levmar-2.5'
+levmar_sources = [
+    'levmar/_levmar.c',
+    'levmar-2.5/lm.c',
+    'levmar-2.5/Axb.c',
+    'levmar-2.5/misc.c',
+    'levmar-2.5/lmlec.c',
+    'levmar-2.5/lmbc.c',
+    'levmar-2.5/lmblec.c',
+    'levmar-2.5/lmbleic.c'
+]
 
 
-def get_extension_sources():
-    src = ('_core.c',)
-    return [os.path.join(PACKAGE_PATH, f) for f in src]
-
-
-def get_extension_include_dirs():
-    return [PACKAGE_PATH, LIBRARY_DIR]
-
-
-def get_library_sources():
-    src = ('lm.c', 'Axb.c', 'misc.c', 'lmlec.c', 'lmbc.c', 'lmblec.c',
-           'lmbleic.c',)
-    src = [os.path.join(LIBRARY_DIR, f) for f in src]
-    return src
-
-
-def configuration(parent_package='', top_path=None):
-    from numpy.distutils.misc_util import Configuration
-    from numpy.distutils.system_info import get_info
-
-    config = Configuration('levmar',
-                           parent_package,
-                           top_path,
-                           package_path=PACKAGE_PATH)
-
-    # Add `levmar` C library.
-    config.add_library('levmar',
-                       sources=get_library_sources())
-
-    # Add `levmar` extension module.
-    config.add_extension('_core',
-                         sources=get_extension_sources(),
-                         include_dirs=get_extension_include_dirs(),
-                         libraries=['levmar'],
-                         extra_info=get_info('lapack_opt'),)
-
-    # Add `tests` directory.
-    config.add_data_dir(('tests', os.path.join(PACKAGE_PATH, 'tests')))
-
-    return config
-
-
-if __name__ == '__main__':
-    from numpy.distutils.core import setup
-
-    setup(configuration    = configuration,
-          version          = '0.1.0',
-          maintainer       = 'Takeshi Kanmae',
-          maintainer_email = 'tkanmae@gmail.com',
-          license          = 'GNU General Public Licence v2',)
+setup(
+    name='levmar',
+    version='0.1.0',
+    license='GNU General Public Licence v2',
+    maintainer='Takeshi Kanmae',
+    maintainer_email='tkanmae@gmail.com',
+    classifiers=[
+        'Intentended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering',
+        'Programing Language :: Python',
+        'Licence :: OSI Approved :: MIT License',
+    ],
+    install_requires=[
+        'numpy>=1.6.2',
+    ],
+    packages=[
+        'levmar',
+    ],
+    ext_modules=[
+        Extension(
+            'levmar._levmar',
+            sources=levmar_sources,
+            include_dirs=['levmar-2.5', np.get_include()],
+            **get_info('lapack_opt')
+        ),
+    ],
+    test_suite='nose.collector',
+)
