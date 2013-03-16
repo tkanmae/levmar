@@ -6,7 +6,7 @@ from numpy.testing import Tester as __Tester
 import _levmar
 
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 # Add test function to the package.

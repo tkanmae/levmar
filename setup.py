@@ -20,7 +20,7 @@ levmar_sources = [
 
 setup(
     name='levmar',
-    version='0.1.0',
+    version='0.2.0',
     license='GNU General Public Licence v2',
     maintainer='Takeshi Kanmae',
     maintainer_email='tkanmae@gmail.com',
