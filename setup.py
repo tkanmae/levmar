@@ -8,13 +8,13 @@ from numpy.distutils.system_info import get_info
 
 levmar_sources = [
     'levmar/_levmar.c',
-    'levmar-2.5/lm.c',
-    'levmar-2.5/Axb.c',
-    'levmar-2.5/misc.c',
-    'levmar-2.5/lmlec.c',
-    'levmar-2.5/lmbc.c',
-    'levmar-2.5/lmblec.c',
-    'levmar-2.5/lmbleic.c'
+    'levmar-2.6/lm.c',
+    'levmar-2.6/Axb.c',
+    'levmar-2.6/misc.c',
+    'levmar-2.6/lmlec.c',
+    'levmar-2.6/lmbc.c',
+    'levmar-2.6/lmblec.c',
+    'levmar-2.6/lmbleic.c'
 ]
 
 
@@ -40,7 +40,7 @@ setup(
         Extension(
             'levmar._levmar',
             sources=levmar_sources,
-            include_dirs=['levmar-2.5', np.get_include()],
+            include_dirs=['levmar-2.6', np.get_include()],
             **get_info('lapack_opt')
         ),
     ],
