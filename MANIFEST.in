@@ -1,8 +1,7 @@
 recursive-include levmar *.pyx *.pxd
 
-recursive-include levmar-2.5 *
+recursive-include levmar-2.6 *
 recursive-include examples *.py
 
 include MANIFEST.in
-include COPYING
 include README
