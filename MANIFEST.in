@@ -1,7 +1,9 @@
+include MANIFEST.in
+include README
+
 recursive-include levmar *.pyx *.pxd
 
 recursive-include levmar-2.6 *
 recursive-include examples *.py
 
-include MANIFEST.in
-include README
+global-exclude .DS_Store
