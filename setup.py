@@ -30,11 +30,10 @@ setup(
         'Programing Language :: Python',
         'Licence :: OSI Approved :: MIT License',
     ],
-    install_requires=[
-        'numpy>=1.6.2',
-    ],
+    install_requires=open('requirements.txt').read().splitlines(),
     packages=[
         'levmar',
+        'levmar.tests',
     ],
     ext_modules=[
         Extension(
