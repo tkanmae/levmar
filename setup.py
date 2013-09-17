@@ -33,6 +33,7 @@ setup(
     install_requires=open('requirements.txt').read().splitlines(),
     packages=[
         'levmar',
+        'levmar.tests',
     ],
     ext_modules=[
         Extension(
