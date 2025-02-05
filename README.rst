@@ -19,41 +19,17 @@ linear inequality constraints).
 Installation
 ============
 
-Building Levmar requires the following software installed:
+Building Levmar requires cython and numpy.
 
-* Python (>=2.6)
-* NumPy (>=1.3)
-* [optional] nose (>=0.11)
+In order to install levmar, simply do::
 
-nose is required to execute tests.
+    $ python -m pip install .
 
-In order to build levmar, simply do::
-
-    $ python setup.py build
-    $ python setup.py install
 
 Then, verify a successful installation::
 
-    $ python -c "import levmar; levmar.test()"
-
-
-If you downloaded Levmar from a GitHub repository, you need to have
-Cython (>=0.13) installed.
-
-::
-
-    $ cython -v levmar/_levmar.pyx
-    $ python setup.py build
-    $ python setup.py install
-    $ python -c "import levmar; levmar.test()"
-
-If you just want to try Levmar without installing it, build it
-in-place::
-
-    $ (cython -v levmar/_levmar.pyx)
-    $ python setup.py build_ext --inplace -f
-    [Set up PYTHONPATH appropriately]
-    $ python -c "import levmar; levmar.test()"
+    $ python -m pip install pytest 
+    $ pytest -v tests/
 
 
 Documentation
@@ -86,7 +62,6 @@ Resources
 * levmar: http://www.ics.forth.gr/~lourakis/levmar/
 * Python: http://www.python.org/
 * NumPy: http://www.scipy.org/
-* nose: http://somethingaboutorange.com/mrl/projects/nose
 * Cython: http://www.cython.org/
 
 

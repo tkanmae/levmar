@@ -87,11 +87,11 @@ cdef class _LMFunc:
         memcpy(j, y_.data, m * n * sizeof(double))
 
 
-cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx):
+cdef inline void callback_func(double *p, double *y, int m, int n, void *ctx) noexcept:
     (<_LMFunc>ctx).eval_func(p, y, m, n)
 
 
-cdef inline void callback_jacf(double *p, double *j, int m, int n, void *ctx):
+cdef inline void callback_jacf(double *p, double *j, int m, int n, void *ctx) noexcept:
     (<_LMFunc>ctx).eval_jacf(p, j, m, n)
 
 

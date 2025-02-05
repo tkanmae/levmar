@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division
-
 from math import (atan, pi, sqrt)
 import numpy as np
 from numpy.testing import assert_array_almost_equal

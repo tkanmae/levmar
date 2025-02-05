@@ -1,0 +1,26 @@
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python', 'numpy', 'cython']
+
+[project]
+name = 'levmar'
+description = 'A Python binding to the levmar library.'
+readme = 'README.rst'
+license = {file = "LICENSE.txt"}
+version='0.2.1'
+authors = [{name='Takeshi Kanmae', email='tkanmae@gmail.com'}]
+maintainers = [
+  {name = 'Robert Denham', email='robert.denham@des.qld.gov.au'}
+]
+
+classifiers=[
+        'Intentended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering',
+        'Programing Language :: Python',
+        'Licence :: OSI Approved :: MIT License',
+    ]
+
+dependencies = [
+    "numpy"
+]
+

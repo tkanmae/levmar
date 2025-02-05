@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division
 
-from numpy.testing import Tester as __Tester
-import _levmar
+from levmar import _levmar
 
-
-__version__ = '0.2.0'
-
-
-# Add test function to the package.
-test = __Tester().test
+__version__ = '0.2.1'
 
 
 def levmar(func, p0, y, args=(), jacf=None,
